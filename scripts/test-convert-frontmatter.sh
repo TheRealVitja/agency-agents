@@ -111,13 +111,19 @@ grep -q 'empty agent slug' "$OUTPUT_DIR/empty-slug-convert.log" || {
   echo "Expected converter to explain the empty slug" >&2
   exit 1
 }
-[[ "$(cat "$OUTPUT_DIR/empty-slug-output/codex/sentinel")" == 'keep existing output' ]]
+[[ "$(cat "$OUTPUT_DIR/empty-slug-output/codex/sentinel")" == 'keep existing output' ]] || {
+  echo "Expected empty-slug rejection to preserve existing output" >&2
+  exit 1
+}
 
 # Keep the Unicode display name, but provide an explicit ASCII alias rather
 # than guessing a transliteration. This remains a valid installable agent.
 sed 's/^name:.*/name: Expert 专家/' "$OUTPUT_DIR/agent.md" > "$fixture_repo/engineering/empty-slug.md"
 "$SCRIPT_DIR/lint-agents.sh" "$fixture_repo/engineering/empty-slug.md" > /dev/null
 "$fixture_repo/scripts/convert.sh" --tool codex --out "$OUTPUT_DIR/aliased-output" > /dev/null
-[[ -f "$OUTPUT_DIR/aliased-output/codex/skills/agency-expert/SKILL.md" ]]
+[[ -f "$OUTPUT_DIR/aliased-output/codex/agents/expert.toml" ]] || {
+  echo "Expected the aliased agent's Codex TOML output" >&2
+  exit 1
+}
 
 echo "PASS: converted YAML frontmatter stays quoted and required source metadata is nonempty"
