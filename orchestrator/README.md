@@ -210,6 +210,13 @@ manifest dependencies and `docker-compose`.
   `npm test`, `go test`, `cargo test`, …). Installing packages, deploying and
   `terraform apply` are deliberately **not** pre-approved — add them per
   workflow (`llm.allowed_tools`) or per run (`--allow`) when you mean it.
+- A step with a `workdir` starts in that directory (the rest of the project
+  stays readable), so `pytest` or `npm test` match their pre-approval as
+  typed. Every refused call is listed in the step's status line and under
+  “Refused tool calls” in `summary.md` — if an agent's answer says tests
+  passed but its `pytest` call was refused, believe the list. Install the
+  project's dev dependencies before a run if you want agents to run tests;
+  the orchestrator does not install anything.
 - Read steps cannot edit: edit tools are disallowed, and if a read step
   changes the worktree anyway, the change is discarded and noted.
 - Agents are told not to commit, push or switch branches; the orchestrator
