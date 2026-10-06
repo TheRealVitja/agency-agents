@@ -1031,8 +1031,18 @@ install_openclaw() {
     install_file "$d/AGENTS.md" "$dest/$name/AGENTS.md"
     install_file "$d/IDENTITY.md" "$dest/$name/IDENTITY.md"
     if command -v openclaw >/dev/null 2>&1; then
+      # `openclaw agents add --workspace` points the agent's agentDir at
+      # ~/.openclaw/agents/<name>/agent/ but never creates it, so the first
+      # sub-agent spawn fails with "agentDir does not exist". Seed it with the
+      # same three files -- also for agents an earlier install registered --
+      # and pass it explicitly when registering.
+      local agent_dir="${HOME}/.openclaw/agents/$name/agent"
+      mkdir -p "$agent_dir"
+      install_file "$d/SOUL.md" "$agent_dir/SOUL.md"
+      install_file "$d/AGENTS.md" "$agent_dir/AGENTS.md"
+      install_file "$d/IDENTITY.md" "$agent_dir/IDENTITY.md"
       if [[ "$existing_agents" != *$'\n'"$name"$'\n'* ]]; then
-        if ! openclaw agents add "$name" --workspace "$dest/$name" --non-interactive; then
+        if ! openclaw agents add "$name" --workspace "$dest/$name" --agent-dir "$agent_dir" --non-interactive; then
           err "OpenClaw: failed to register '$name'; the copied workspace is not active."
           # Keep registering the rest: one bad registration must not cost the others.
           failed_names="${failed_names:+$failed_names }$name"
