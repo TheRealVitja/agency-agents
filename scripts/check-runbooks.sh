@@ -10,12 +10,12 @@
 # check fails the build when:
 #   1. runbooks.json is not valid JSON, or an entry has empty required metadata
 #      or no deployable agent roster
-#   2. any roster `agents[]` slug does not match an agent .md filename stem
+#   2. any roster `agents[]` slug does not match a rendered agent id
 #   3. any `doc` path does not exist
 #   4. a runbook `slug` is duplicated
 #
-# Slugs are the agent .md filename stem (the corpus id), e.g.
-# engineering/engineering-frontend-developer.md -> "engineering-frontend-developer".
+# Rendered ids come from the agent's `name:` frontmatter, e.g.
+# engineering/engineering-frontend-developer.md -> "frontend-developer".
 # Uses python3 (already required by check-agent-originality.sh) for JSON; no jq,
 # so it runs the same on macOS and CI. Mirrors scripts/check-divisions.sh.
 #
@@ -30,7 +30,7 @@ command -v python3 >/dev/null 2>&1 || {
 }
 
 PYTHONUTF8=1 python3 - <<'PYEOF'
-import json, os, subprocess, sys
+import json, os, pathlib, re, subprocess, sys
 
 JSON = "strategy/runbooks.json"
 errors = []
@@ -43,10 +43,20 @@ try:
 except json.JSONDecodeError as e:
     print(f"ERROR {JSON} is not valid JSON: {e}"); sys.exit(1)
 
-# Real slugs = filename stems of tracked agent .md files under division dirs.
+# Match scripts/lib.sh:agent_slug, which the converters use for rendered ids.
 NON_DIVISION = {"integrations", "examples", "strategy", "scripts", ".github"}
 tracked = subprocess.check_output(["git", "ls-files", "*/*.md"]).decode().splitlines()
-real = {os.path.basename(p)[:-3] for p in tracked if p.split("/")[0] not in NON_DIVISION}
+real = set()
+for p in tracked:
+    if p.split("/")[0] in NON_DIVISION:
+        continue
+    lines = pathlib.Path(p).read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0] != "---":
+        continue
+    name = next((line[6:].strip().strip("\"'") for line in lines[1:]
+                 if line.startswith("name: ")), None)
+    if name:
+        real.add(re.sub(r"^-|-$", "", re.sub(r"-+", "-", re.sub(r"[^a-z0-9]", "-", name.lower()))))
 
 runbooks = data.get("runbooks")
 if not isinstance(runbooks, list) or not runbooks:
@@ -86,7 +96,7 @@ for index, rb in enumerate(runbooks, 1):
             total_refs += 1
             if not isinstance(slug, str) or slug not in real:
                 errors.append(f"runbook '{rid}' / group '{g.get('group','?')}': "
-                              f"slug '{slug}' does not match any agent .md filename stem")
+                              f"slug '{slug}' does not match any rendered agent id")
 
 if errors:
     print(f"FAILED: {len(errors)} runbook consistency error(s). "
@@ -96,5 +106,5 @@ if errors:
     sys.exit(1)
 
 print(f"PASSED: {len(runbooks)} runbooks, {total_refs} agent slug references — "
-      f"all resolve to real agent files.")
+      f"all resolve to rendered agent ids.")
 PYEOF
