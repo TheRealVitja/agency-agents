@@ -1,0 +1,28 @@
+name: Test Orchestrator
+
+# Runs on every PR (no path filter on purpose): renaming or removing an agent
+# can break orchestrator/routing.json without touching orchestrator/.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-orchestrator:
+    name: orchestrator — analysis, routing, planning, runs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unit and end-to-end tests (fake agent, no model calls)
+        run: python3 -m unittest discover -s orchestrator/tests -v
+
+      - name: CLI smoke test
+        run: |
+          ./orchestrator/agency-orchestrate analyze orchestrator/tests/fixtures/shop
+          ./orchestrator/agency-orchestrate plan "Add a discount column to orders" \
+            -p orchestrator/tests/fixtures/shop -o /tmp/plan.yaml
+          ./orchestrator/agency-orchestrate validate /tmp/plan.yaml

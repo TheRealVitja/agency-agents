@@ -44,7 +44,7 @@ except json.JSONDecodeError as e:
     print(f"ERROR {JSON} is not valid JSON: {e}"); sys.exit(1)
 
 # Match scripts/lib.sh:agent_slug, which the converters use for rendered ids.
-NON_DIVISION = {"integrations", "examples", "strategy", "scripts", ".github"}
+NON_DIVISION = {"integrations", "examples", "strategy", "scripts", "orchestrator", ".github"}
 tracked = subprocess.check_output(["git", "ls-files", "*/*.md"]).decode().splitlines()
 real = set()
 for p in tracked:
