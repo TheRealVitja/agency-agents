@@ -678,8 +678,20 @@ WINDSURF_RULE_LIMIT=12000
 # /^ {0,3}(`{3,}|~{3,})/ on purpose. mawk before 1.3.4-20200717 (Debian 12's
 # awk) reads {n,m} as literal braces, so that regex never matches there, fence
 # tracking silently switches off, and the trim cuts through code blocks.
+#
+# The budget is in characters, as Windsurf counts them, and it has to come out
+# the same on every awk: length() is bytes in mawk and macOS awk but characters
+# in gawk under a UTF-8 locale, so the same agent trimmed differently per
+# machine (and the committed manifest drifted on CI's gawk). The program runs
+# under LC_ALL=C and counts characters itself — every byte that is not a UTF-8
+# continuation byte (0x80-0xBF) starts one.
 windsurf_trim_body() {
-  printf '%s' "$1" | awk -v budget="$2" '
+  printf '%s' "$1" | LC_ALL=C awk -v budget="$2" '
+    # ulen(s) — characters in the UTF-8 string s, on any awk.
+    function ulen(s,    t, n) {
+      t = s; n = gsub(/[\200-\277]/, "", t)
+      return length(s) - n
+    }
     # fence_step(line) — update fence/flen for one line.
     function fence_step(s,    ind, c, n, rest) {
       ind = 0
@@ -704,7 +716,7 @@ windsurf_trim_body() {
       total = 0; line_cut = 0; h2 = 0; h3 = 0; para = 0
       fence = ""; flen = 0
       for (i = 1; i <= NR; i++) {
-        total += length(lines[i]) + 1
+        total += ulen(lines[i]) + 1
         if (total > budget) break
         used[i] = total
         fence_step(lines[i])
@@ -731,6 +743,12 @@ windsurf_trim_body() {
       for (j = 1; j <= cut; j++) print lines[j]
     }
   '
+}
+
+# char_len <text> — characters in UTF-8 <text>. ${#var} would count bytes or
+# characters depending on the caller's locale; this counts the same everywhere.
+char_len() {
+  printf '%s' "$1" | LC_ALL=C tr -d '\200-\277' | wc -c | tr -d ' '
 }
 
 convert_windsurf() {
@@ -763,7 +781,7 @@ Trimmed to fit Windsurf's ${WINDSURF_RULE_LIMIT}-character rule limit.
 Full agent: ${source}"
 
   trimmed="$(windsurf_trim_body "$body" \
-    "$(( WINDSURF_RULE_LIMIT - ${#header} - ${#footer} - 1 ))")"
+    "$(( WINDSURF_RULE_LIMIT - $(char_len "$header") - $(char_len "$footer") - 1 ))")"
 
   if [[ "$trimmed" == "$body" ]]; then
     printf '%s%s\n' "$header" "$body" > "$outfile"
