@@ -330,7 +330,14 @@ elif not colour_bad:
 # block in half and leaves each file holding a dangling fence, which renders as
 # broken markdown for every user of that integration (#849). So every fenced
 # block in a source must land intact in exactly one of the two files.
-SPLIT_FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
+#
+# This model must read fences exactly as lib.sh's fence_open_p / fence_closes_p
+# do (and as GitHub renders): up to three spaces of indentation, same character,
+# a closer at least as long as the opener with nothing but whitespace after it.
+# Reading fences at column 0 only missed an indented opener and paired its
+# column-0 closer with the following lines, reporting a tear the converter had
+# not made.
+OPEN_FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})")
 
 def body_lines(text):
     """Mirror lib.sh's get_body, including `$(...)`'s trailing-newline strip."""
@@ -346,13 +353,17 @@ def body_lines(text):
     return out
 
 def fence_blocks(lines):
-    """Inclusive (opener, closer) index pairs; closer = last line if unterminated."""
+    """Inclusive (opener, closer) index pairs; closer = last line if unterminated.
+
+    Mirrors lib.sh fence_open_p / fence_closes_p so the eval sees the same
+    blocks the converter does.
+    """
     res, marker, mlen, start = [], "", 0, None
     for i, line in enumerate(lines):
-        m = SPLIT_FENCE.match(line)
+        m = OPEN_FENCE.match(line)
         if not m:
             continue
-        tok, rest = m.group(1), m.group(2)
+        tok, rest = m.group(2), line[m.end():]
         if not marker:
             marker, mlen, start = tok[0], len(tok), i
         elif tok[0] == marker and len(tok) >= mlen and not rest.strip():
