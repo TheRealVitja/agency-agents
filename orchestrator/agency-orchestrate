@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Entry point: hand a task to an existing project and let the matching agents
+work on it in dependency order. See orchestrator/README.md."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from agency_orchestrator.cli import main  # noqa: E402
+
+sys.exit(main())

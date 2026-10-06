@@ -1,0 +1,58 @@
+{
+  "_note": "Which agent takes which part of a project. `tags` are matched against each component the analyzer finds: `deps` against its declared package dependencies (fnmatch patterns, case-insensitive, any ecosystem), `files` against its file paths (a pattern without '/' matches a basename, one ending in '/' a directory, anything else a path relative to the component), `languages` against its main languages. Order is priority: the first matching `platform` tag decides who implements a component, so specific stacks come before general ones. `concern` tags never implement a component on their own; when the task text hits one of their `keywords`, their agent works on the component first (a schema change before the API that uses it). `intents` add read-only steps for the whole task. Every agent here must be a slug from the roster; orchestrator/tests check that.",
+  "tags": [
+    {"tag": "unreal", "kind": "platform", "agents": ["unreal-systems-engineer"], "files": ["*.uproject", "*.uplugin"]},
+    {"tag": "godot", "kind": "platform", "agents": ["godot-gameplay-scripter"], "files": ["project.godot", "*.gd"]},
+    {"tag": "unity", "kind": "platform", "agents": ["unity-architect"], "files": ["ProjectSettings/ProjectVersion.txt", "*.unity"]},
+    {"tag": "blender-addon", "kind": "platform", "agents": ["blender-add-on-engineer"], "files": ["blender_manifest.toml"]},
+    {"tag": "solidity", "kind": "platform", "agents": ["solidity-smart-contract-engineer"], "files": ["*.sol", "foundry.toml", "hardhat.config.*"], "deps": ["hardhat", "@openzeppelin/contracts", "forge-std"]},
+    {"tag": "harmonyos", "kind": "platform", "agents": ["harmonyos-app-engineer"], "files": ["oh-package.json5", "*.ets"]},
+    {"tag": "wechat-mini-program", "kind": "platform", "agents": ["wechat-mini-program-developer"], "files": ["app.wxss", "project.config.json", "*.wxml"]},
+    {"tag": "mobile", "kind": "platform", "agents": ["mobile-app-builder"], "files": ["pubspec.yaml", "AndroidManifest.xml", "*.xcodeproj/", "Podfile", "app.json"], "deps": ["react-native", "expo", "flutter", "@capacitor/core", "@ionic/*", "nativescript*"]},
+    {"tag": "embedded", "kind": "platform", "agents": ["embedded-firmware-engineer"], "files": ["platformio.ini", "*.ino", "sdkconfig", "prj.conf"], "deps": ["zephyr", "esp-idf*", "embassy-*", "cortex-m*"]},
+    {"tag": "ros2", "kind": "platform", "agents": ["ros-2-robotics-engineer"], "files": ["package.xml"], "deps": ["rclpy", "rclcpp", "ament_*"]},
+    {"tag": "wordpress", "kind": "platform", "agents": ["wordpress-performance-engineer"], "files": ["wp-config.php", "wp-content/", "style.css"], "deps": ["johnpbloch/wordpress*", "roots/wordpress*", "wpackagist-*"]},
+    {"tag": "drupal", "kind": "platform", "agents": ["drupal-performance-engineer"], "files": ["*.info.yml"], "deps": ["drupal/core*"]},
+    {"tag": "desktop", "kind": "platform", "agents": ["desktop-app-engineer"], "files": ["src-tauri/", "tauri.conf.json"], "deps": ["electron", "@tauri-apps/*", "tauri"]},
+    {"tag": "webassembly", "kind": "platform", "agents": ["webassembly-engineer"], "deps": ["wasm-bindgen", "wasm-pack", "@wasmer/*"]},
+    {"tag": "rag", "kind": "platform", "agents": ["rag-pipeline-engineer"], "deps": ["langchain*", "llama-index*", "llama_index*", "chromadb", "qdrant-client", "pgvector", "weaviate-client", "pinecone*", "faiss*"]},
+    {"tag": "ml", "kind": "platform", "agents": ["ai-engineer"], "deps": ["torch", "tensorflow", "keras", "jax", "scikit-learn", "sklearn", "transformers", "xgboost", "lightgbm", "anthropic", "openai", "@anthropic-ai/sdk"]},
+    {"tag": "data-pipeline", "kind": "platform", "agents": ["data-engineer"], "files": ["dbt_project.yml", "dags/"], "deps": ["apache-airflow*", "dbt-*", "pyspark", "dagster*", "prefect", "apache-beam*", "kafka-python", "confluent-kafka"]},
+    {"tag": "web-gis", "kind": "platform", "agents": ["web-gis-developer"], "deps": ["leaflet", "maplibre-gl", "mapbox-gl", "ol", "@arcgis/core", "cesium", "deck.gl"]},
+    {"tag": "frontend", "kind": "platform", "agents": ["frontend-developer"], "deps": ["react", "react-dom", "vue", "svelte", "@sveltejs/kit", "@angular/core", "next", "nuxt", "solid-js", "preact", "astro", "lit", "vite", "@remix-run/*"], "files": ["*.tsx", "*.jsx", "*.vue", "*.svelte"]},
+    {"tag": "api", "kind": "platform", "agents": ["backend-architect"], "deps": ["fastapi", "django", "djangorestframework", "flask", "starlette", "aiohttp", "litestar", "express", "fastify", "@nestjs/core", "koa", "hono", "@hapi/hapi", "github.com/gin-gonic/gin", "github.com/labstack/echo*", "github.com/gofiber/fiber*", "github.com/go-chi/chi*", "spring-boot-starter-web*", "org.springframework.boot*", "io.quarkus*", "axum", "actix-web", "rocket", "warp", "laravel/framework", "symfony/*", "rails", "sinatra", "phoenix", "grpcio", "@grpc/grpc-js"]},
+    {"tag": "infra", "kind": "platform", "agents": ["devops-automator"], "files": ["*.tf", "Chart.yaml", "kustomization.yaml", "Pulumi.yaml", "serverless.yml", "cdk.json", "ansible.cfg", "*.bicep"]},
+    {"tag": "docs", "kind": "platform", "agents": ["technical-writer"], "files": ["mkdocs.yml", "docusaurus.config.*", "conf.py", "book.toml"], "deps": ["mkdocs*", "sphinx*", "@docusaurus/core", "vitepress"]},
+
+    {"tag": "database", "kind": "concern", "agents": ["database-optimizer"], "deps": ["sqlalchemy", "alembic", "psycopg*", "asyncpg", "pg", "postgres", "mysql*", "pymysql", "prisma", "@prisma/client", "typeorm", "sequelize", "knex", "drizzle-orm", "mongoose", "mongodb", "pymongo", "motor", "redis", "ioredis", "gorm.io/gorm", "diesel", "sqlx", "sea-orm", "django"], "files": ["migrations/", "alembic.ini", "schema.prisma", "*.sql"], "keywords": ["database", "db", "schema", "migration", "migrate", "table", "column", "index", "query", "queries", "sql", "postgres", "mysql", "orm", "datenbank", "spalte", "tabelle", "abfrage"]},
+    {"tag": "auth", "kind": "concern", "agents": ["identity-access-engineer"], "deps": ["passport*", "next-auth", "@auth/*", "authlib", "python-jose", "pyjwt", "jsonwebtoken", "jose", "keycloak*", "@clerk/*", "django-allauth", "devise", "golang.org/x/oauth2", "github.com/golang-jwt/jwt*"], "keywords": ["auth", "login", "logout", "oauth", "oidc", "sso", "session", "jwt", "token", "permission", "role", "rbac", "anmeldung", "berechtigung"]},
+    {"tag": "payments", "kind": "concern", "agents": ["payments-billing-engineer"], "deps": ["stripe", "@stripe/*", "paddle*", "braintree", "adyen*", "@paypal/*", "mollie*"], "keywords": ["payment", "billing", "invoice", "subscription", "checkout", "refund", "stripe", "zahlung", "rechnung", "abo"]},
+    {"tag": "realtime", "kind": "concern", "agents": ["realtime-collaboration-engineer"], "deps": ["socket.io*", "ws", "yjs", "y-*", "@liveblocks/*", "channels", "pusher*", "ably"], "keywords": ["realtime", "real-time", "websocket", "presence", "collaboration", "live", "sync", "echtzeit"]},
+    {"tag": "i18n", "kind": "concern", "agents": ["internationalization-engineer"], "deps": ["i18next", "react-i18next", "react-intl", "next-intl", "vue-i18n", "@formatjs/*", "babel", "gettext*", "fluent*"], "keywords": ["i18n", "l10n", "translation", "translate", "locale", "localization", "language", "übersetzung", "sprache"]},
+    {"tag": "search", "kind": "concern", "agents": ["search-relevance-engineer"], "deps": ["elasticsearch*", "@elastic/*", "opensearch*", "meilisearch*", "typesense*", "algoliasearch"], "keywords": ["search", "ranking", "relevance", "suche"]},
+    {"tag": "container", "kind": "concern", "agents": ["devops-automator"], "files": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yaml", "compose.yml"], "keywords": ["docker", "container", "image", "deploy", "deployment", "kubernetes", "k8s"]},
+    {"tag": "ci", "kind": "concern", "agents": ["devops-automator"], "files": [".github/workflows/", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/"], "keywords": ["ci", "pipeline", "workflow", "github actions", "build"]},
+    {"tag": "e2e-tests", "kind": "concern", "agents": ["test-automation-engineer"], "deps": ["@playwright/test", "playwright", "cypress", "selenium", "puppeteer", "webdriverio"], "keywords": ["e2e", "end-to-end", "playwright", "cypress", "flaky"]},
+
+    {"tag": "python", "kind": "language", "agents": ["senior-developer"], "languages": ["python"]},
+    {"tag": "typescript", "kind": "language", "agents": ["senior-developer"], "languages": ["typescript", "javascript"]},
+    {"tag": "go", "kind": "language", "agents": ["senior-developer"], "languages": ["go"]},
+    {"tag": "rust", "kind": "language", "agents": ["senior-developer"], "languages": ["rust"]},
+    {"tag": "jvm", "kind": "language", "agents": ["senior-developer"], "languages": ["java", "kotlin", "scala"]},
+    {"tag": "dotnet", "kind": "language", "agents": ["senior-developer"], "languages": ["csharp", "fsharp"]}
+  ],
+  "phases": {
+    "lead": ["software-architect"],
+    "fallback": ["senior-developer"],
+    "test": ["test-automation-engineer"],
+    "test_by_tag": {"api": ["api-tester"]},
+    "review": ["code-reviewer"]
+  },
+  "layer_order": ["infra", "data-pipeline", "rag", "ml", "api", "desktop", "mobile", "frontend", "web-gis", "docs"],
+  "intents": [
+    {"intent": "security", "agents": ["application-security-engineer"], "keywords": ["security", "secure", "vulnerability", "vulnerabilities", "xss", "csrf", "injection", "owasp", "secret", "secrets", "sicherheit", "schwachstelle"]},
+    {"intent": "performance", "agents": ["performance-benchmarker"], "keywords": ["performance", "slow", "latency", "speed", "faster", "throughput", "benchmark", "memory", "langsam", "schneller"]},
+    {"intent": "accessibility", "agents": ["accessibility-auditor"], "keywords": ["accessibility", "a11y", "wcag", "screen reader", "aria", "barrierefrei", "barrierefreiheit"]},
+    {"intent": "privacy", "agents": ["privacy-engineer"], "keywords": ["privacy", "gdpr", "dsgvo", "pii", "personal data", "datenschutz"]}
+  ]
+}
