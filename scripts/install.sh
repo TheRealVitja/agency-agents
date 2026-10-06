@@ -447,6 +447,10 @@ ensure_converted() {
   $AUTO_CONVERT || return 0
   case "$tool" in claude-code|copilot) return 0 ;; esac
   local d="$INTEGRATIONS/$tool"
+  # Windsurf output moved from one .windsurfrules to rules/<slug>.md. A
+  # .windsurfrules left by an older convert.sh is not something this installer
+  # can use, so only the rules directory counts (convert.sh removes the old file).
+  [[ "$tool" == windsurf ]] && d="$INTEGRATIONS/windsurf/rules"
   # Every integrations/<tool>/ ships a committed README.md, so "any file
   # present" mistook the README for generated output and never converted in a
   # fresh checkout (the installer then hard-failed "<tool> missing"). Only files
