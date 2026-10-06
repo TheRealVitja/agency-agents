@@ -1160,10 +1160,23 @@ When you add new agents or edit existing ones, regenerate all integration files:
 
 ---
 
+## 🧭 Orchestrator: Put the Agency to Work on Your Projects
+
+[`orchestrator/`](orchestrator/) hands a task to an **existing project** and lets the agents whose expertise matches each part of it do the work, in the order the project's own dependency graph dictates:
+
+```bash
+./orchestrator/agency-orchestrate do "Add a discount column to orders and show it in the web app" --project ~/dev/shop
+```
+
+It analyzes the project (components from build manifests; dependencies from imports, manifests, `docker-compose` and optionally [Graphify](https://github.com/safishamsi/graphify)), routes each component to the agent for its stack (React → Frontend Developer, FastAPI → Backend Architect, Terraform → DevOps Automator, a schema change → Database Optimizer first), and runs the plan with Claude Code in an isolated git worktree — one branch per run, one commit per agent, your working tree untouched. `plan` writes the workflow for you to review first; `--provider dry-run` previews every prompt. See [orchestrator/README.md](orchestrator/README.md).
+
+---
+
 ## 🗺️ Roadmap
 
 - [ ] Interactive agent selector web tool
 - [x] Multi-agent workflow examples -- see [examples/](examples/)
+- [x] Orchestrator that routes tasks on existing projects to the right agents by dependency graph -- see [orchestrator/](orchestrator/)
 - [x] Multi-tool integration scripts (Claude Code, GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Qwen Code, Kimi Code, Codex, Osaurus, Hermes)
 - [ ] Video tutorials on agent design
 - [ ] Community agent marketplace

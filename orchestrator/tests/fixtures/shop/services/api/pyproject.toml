@@ -1,0 +1,7 @@
+[project]
+name = "shop-api"
+version = "0.1.0"
+dependencies = ["fastapi>=0.110", "sqlalchemy>=2", "alembic", "psycopg[binary]", "shop-core"]
+
+[project.optional-dependencies]
+test = ["pytest", "httpx"]

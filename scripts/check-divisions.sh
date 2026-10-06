@@ -33,8 +33,9 @@ JSON="divisions.json"
 # integrations/ is convert.sh's OUTPUT tree (per-tool conversions written back
 # into the repo), not a source-agent category. strategy/ holds playbooks and
 # runbooks (no agent frontmatter), not agents. Neither is a division — they must
-# never be scanned as source-agent categories.
-NON_DIVISION_DIRS=(examples scripts integrations strategy)
+# never be scanned as source-agent categories. orchestrator/ is tooling (and its
+# test fixtures are sample projects, not agents).
+NON_DIVISION_DIRS=(examples scripts integrations strategy orchestrator)
 
 errors=0
 fail() { echo "ERROR $*"; errors=$((errors + 1)); }

@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:17
+  api:
+    build: ./services/api
+    depends_on: [db]
+  web:
+    build: ./web
+    depends_on: [api]
