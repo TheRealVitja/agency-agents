@@ -106,7 +106,7 @@ Browse the agents below and copy/adapt the ones you need!
 ./scripts/install.sh --tool opencode --division engineering --dry-run
 ```
 
-`--agent` and `--agents-file` take an agent's slug (as `--list agents` prints it), its display name, or its file name without `.md` — the id the [runbook rosters](strategy/runbooks.json) use — so a runbook's team installs as listed:
+`--agent` and `--agents-file` take an agent's slug (as `--list agents` prints it, and as the [runbook rosters](strategy/runbooks.json) list it), its display name, or its file name without `.md`, so a runbook's team installs as listed:
 
 ```bash
 python3 -c 'import json, sys
