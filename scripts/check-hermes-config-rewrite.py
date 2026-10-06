@@ -343,6 +343,17 @@ def main() -> int:
                     - basic - "agency-agents-router"
             """),
         ),
+        (
+            # Reviewer-verified shape (phant0um): quotes and an inline comment
+            # on an existing entry must still match, and must not be re-added.
+            "Quoted enabled item with an inline comment (already enabled)",
+            textwrap.dedent("""\
+                plugins:
+                  enabled:
+                    - chronos
+                    - "agency-agents-router"  # quoted and commented
+            """),
+        ),
     ]
 
     if HERMES_BACKUP.exists():
