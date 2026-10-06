@@ -170,6 +170,36 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "nexus-spatial-discovery",
+      "title": "Nexus Spatial Discovery",
+      "mode": "NEXUS-Sprint",
+      "duration": "1-2 weeks",
+      "summary": "Full-agency product discovery exercise — 8 specialists run in parallel to evaluate a software opportunity and produce a unified plan.",
+      "doc": "examples/nexus-spatial-discovery.md",
+      "roster": [
+        {
+          "group": "Discovery Core",
+          "activation": "always",
+          "agents": [
+            "trend-researcher",
+            "ux-researcher",
+            "backend-architect",
+            "brand-guardian"
+          ]
+        },
+        {
+          "group": "Go-to-Market & Delivery",
+          "activation": "always",
+          "agents": [
+            "growth-hacker",
+            "support-responder",
+            "project-shepherd",
+            "xr-interface-architect"
+          ]
+        }
+      ]
     }
   ]
 }
