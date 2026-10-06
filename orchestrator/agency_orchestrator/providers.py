@@ -45,6 +45,7 @@ class Request:
     mode: str               # write | read
     settings: dict[str, Any] = field(default_factory=dict)
     log_dir: Path | None = None
+    project_root: Path | None = None   # when cwd is a component inside it
 
 
 @dataclass
@@ -55,6 +56,7 @@ class Result:
     cost_usd: float | None = None
     usage: dict[str, Any] = field(default_factory=dict)
     duration_s: float = 0.0
+    denied: list[str] = field(default_factory=list)   # tool calls refused for lack of permission
 
 
 class ProviderError(RuntimeError):
@@ -160,6 +162,11 @@ class ClaudeCodeProvider(Provider):
         s = req.settings
         args = [self.binary(), "-p", "--output-format", "json", "--no-session-persistence",
                 "--append-system-prompt-file", str(sys_file)]
+        if req.project_root and req.project_root != req.cwd:
+            # The step starts in its component, so `pytest` / `npm test` match
+            # their pre-approved rules without a `cd`; the rest of the project
+            # stays readable.
+            args += ["--add-dir", str(req.project_root)]
         extra_tools = [str(t) for t in (s.get("allowed_tools") or [])]
         if req.mode == "write":
             args += ["--permission-mode", str(s.get("permission_mode", "acceptEdits"))]
@@ -202,10 +209,19 @@ class ClaudeCodeProvider(Provider):
         output = str(data.get("result") or "")
         cost = data.get("total_cost_usd")
         usage = data.get("usage") or {}
+        denied = [_describe_tool_call(d) for d in data.get("permission_denials") or []]
         if data.get("is_error") or proc.returncode != 0 or data.get("subtype") not in (None, "success"):
             reason = data.get("subtype") or "error"
-            return Result(False, output, f"claude reported {reason}: {output[-800:]}", cost, usage, dur)
-        return Result(True, output, cost_usd=cost, usage=usage, duration_s=dur)
+            return Result(False, output, f"claude reported {reason}: {output[-800:]}", cost, usage, dur, denied)
+        return Result(True, output, cost_usd=cost, usage=usage, duration_s=dur, denied=denied)
+
+
+def _describe_tool_call(denial: dict[str, Any]) -> str:
+    tool = str(denial.get("tool_name") or "?")
+    inp = denial.get("tool_input") or {}
+    detail = inp.get("command") or inp.get("file_path") or inp.get("path") or ""
+    detail = " ".join(str(detail).split())
+    return f"{tool}({detail[:120]}{'…' if len(detail) > 120 else ''})" if detail else tool
 
 
 def _last_json(text: str) -> dict[str, Any] | None:

@@ -346,6 +346,28 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(git(self.project, "worktree", "list").count("\n"), 0)
         self.assertEqual(git(self.project, "status", "--porcelain"), "")
 
+    def test_claude_code_step_starts_in_its_component_and_reports_refusals(self):
+        record = self.tmp / "claude-call.json"
+        fake_claude = self.tmp / "claude"
+        fake_claude.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json, os, sys\n"
+            f"json.dump({{'argv': sys.argv[1:], 'cwd': os.getcwd(), 'stdin': sys.stdin.read()}}, open({str(record)!r}, 'w'))\n"
+            "print(json.dumps({'type': 'result', 'subtype': 'success', 'is_error': False, 'result': 'done',\n"
+            "                  'total_cost_usd': 0.01, 'permission_denials': [\n"
+            "                      {'tool_name': 'Bash', 'tool_input': {'command': 'cd x && python3 -c 1'}}]}))\n")
+        fake_claude.chmod(0o755)
+        w = wf.from_dict({"name": "c", "steps": [{"id": "impl", "agent": "senior-developer", "mode": "write",
+                                                  "workdir": "libs/core", "task": "do it"}]})
+        res = self.runner(w, provider="claude-code", settings={"command": str(fake_claude)}).run()
+        self.assertTrue(res.ok, self.out.getvalue())
+        call = json.loads(record.read_text())
+        self.assertEqual(Path(call["cwd"]), (res.worktree / "libs" / "core").resolve())
+        self.assertEqual(call["argv"][call["argv"].index("--add-dir") + 1], str(res.worktree.resolve()))
+        self.assertEqual(call["stdin"], "do it")
+        self.assertEqual(res.states["impl"].denied, ["Bash(cd x && python3 -c 1)"])
+        self.assertIn("## Refused tool calls", (res.run_dir / "summary.md").read_text())
+
     def test_approval_without_terminal_fails_unless_yes(self):
         w = wf.from_dict({"name": "a", "steps": [
             {"id": "ok", "type": "approval", "prompt": "Go?"},

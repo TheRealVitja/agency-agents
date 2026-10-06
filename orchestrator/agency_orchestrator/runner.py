@@ -72,8 +72,11 @@ work before and after you; the orchestrator passes your final answer on to
 them verbatim.
 
 - Run: {run_id}. Your step: `{step_id}` ({mode_text}).
-- Working directory: the project root{branch_text}.
-{scope_text}{mode_rules}
+- Project root: `{root}`{branch_text}.
+{scope_text}{mode_rules}- Commands that are not pre-approved are refused (nobody can approve them
+  mid-run). If a check you needed was refused or could not run, say so
+  plainly in your answer — never report a test or build as passing unless
+  you ran it and saw it pass.
 - Finish with exactly the answer the task asks for. Keep it self-contained:
   the next agent sees only what you write, not this conversation.
 """
@@ -101,6 +104,7 @@ class StepState:
     error: str | None = None
     cost_usd: float | None = None
     note: str | None = None
+    denied: list[str] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in self.__dict__.items() if v is not None}
@@ -284,9 +288,12 @@ class Runner:
     # --- one step -------------------------------------------------------------------
 
     def _system_prompt(self, step: wf.Step, agent) -> str:
-        scope = f"- Your part of the project: `{step.workdir}/`.\n" if step.workdir and step.workdir != "." else ""
+        scope = ""
+        if step.workdir and step.workdir != ".":
+            scope = (f"- Your part of the project: `{step.workdir}/` — your working directory. The rest of the\n"
+                     f"  project is readable at the project root.\n")
         rules = ORCHESTRATION_RULES.format(
-            run_id=self.run_id, step_id=step.id,
+            run_id=self.run_id, step_id=step.id, root=self.cwd,
             mode_text="you may edit files" if step.mode == "write" else "read-only",
             branch_text=f" (an isolated git worktree on branch `{self.branch}`)" if self.branch else "",
             scope_text=scope, mode_rules=WRITE_RULES if step.mode == "write" else READ_RULES)
@@ -347,10 +354,13 @@ class Runner:
         st.agent, st.agent_name = agent.slug, agent.name
         settings = {**self.settings, **step.llm}
         prompt = self._prompt(step)
+        cwd = self.cwd
+        if step.workdir and step.workdir != "." and (self.cwd / step.workdir).is_dir():
+            cwd = (self.cwd / step.workdir).resolve()
         req = providers.Request(step_id=step.id, agent=agent.slug, agent_name=agent.name,
                                 system_prompt=self._system_prompt(step, agent), prompt=prompt,
-                                cwd=self.cwd, mode=step.mode, settings=settings,
-                                log_dir=self.run_dir / "prompts")
+                                cwd=cwd, mode=step.mode, settings=settings,
+                                log_dir=self.run_dir / "prompts", project_root=self.cwd)
         retries = int(settings.get("retry", 0))
         result = None
         for attempt in range(retries + 1):
@@ -362,6 +372,7 @@ class Runner:
                 time.sleep(min(30, 2 ** attempt * 3))
         assert result is not None
         st.cost_usd = result.cost_usd
+        st.denied = result.denied or None
         out_name = f"steps/{index:02d}-{step.id}.md"
         (self.run_dir / out_name).write_text(result.output or "", encoding="utf-8")
         st.output_file = out_name
@@ -411,6 +422,8 @@ class Runner:
             extra.append(f"${st.cost_usd:.2f}")
         if st.note:
             extra.append(st.note)
+        if st.denied:
+            extra.append(f"{len(st.denied)} tool call(s) refused, e.g. {st.denied[0][:70]}")
         if st.error:
             extra.append(st.error.splitlines()[0][:160])
         return f"  {icon} {sid:<26} {st.agent_name or self.dag.steps[sid].type:<28} {dur:>6}  " + "; ".join(extra)
@@ -511,6 +524,12 @@ class Runner:
             st = self.states[sid]
             lines.append(f"| {sid} | {st.agent_name or self.dag.steps[sid].type} | {st.status} | "
                          f"{(st.commit or '')[:8]} | {(st.error or st.note or st.diffstat or '').splitlines()[0] if (st.error or st.note or st.diffstat) else ''} |")
+        refused = [(sid, d) for sid in self.dag.order() for d in (self.states[sid].denied or [])]
+        if refused:
+            lines += ["", "## Refused tool calls", "",
+                      "Not pre-approved, so the agent could not run them — checks it planned this way did not happen. "
+                      "Pre-approve what you trust with `--allow` or `llm.allowed_tools`.", ""]
+            lines += [f"- `{sid}`: `{d}`" for sid, d in refused]
         last = next((sid for sid in reversed(self.dag.order()) if self.states[sid].status == "done"
                      and self.states[sid].output_file), None)
         if last:
