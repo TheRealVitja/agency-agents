@@ -131,6 +131,7 @@ Building the future, one commit at a time.
 | 🏗️ [Backend Architect](engineering/engineering-backend-architect.md) | API design, database architecture, scalability | Server-side systems, microservices, cloud infrastructure |
 | 📱 [Mobile App Builder](engineering/engineering-mobile-app-builder.md) | iOS/Android, React Native, Flutter | Native and cross-platform mobile applications |
 | 🔐 [Mobile Security Engineer](engineering/engineering-mobile-security.md) | OWASP Mobile Top 10, MASVS, NIST mobile threats | iOS/Android security assessments, secure mobile SDLC, MASVS compliance |
+| 🪐 [HarmonyOS App Engineer](engineering/engineering-harmonyos-app-engineer.md) | ArkTS/ArkUI, Stage-model abilities, HAR/HSP packaging, AppGallery release | Native HarmonyOS NEXT apps and Android-to-ArkTS migration |
 | 🤖 [AI Engineer](engineering/engineering-ai-engineer.md) | ML models, deployment, AI integration | Machine learning features, data pipelines, AI-powered apps |
 | 🚀 [DevOps Automator](engineering/engineering-devops-automator.md) | CI/CD, infrastructure automation, cloud ops | Pipeline development, deployment automation, monitoring |
 | 🌐 [Network Engineer](engineering/engineering-network-engineer.md) | Cisco IOS/IOS-XE, Juniper Junos, Palo Alto PAN-OS | Router/switch/firewall configuration, BGP/OSPF, ACLs, show-output troubleshooting |
@@ -140,6 +141,7 @@ Building the future, one commit at a time.
 | ⚡ [Autonomous Optimization Architect](engineering/engineering-autonomous-optimization-architect.md) | LLM routing, cost optimization, shadow testing | Autonomous systems needing intelligent API selection and cost guardrails |
 | 🔩 [Embedded Firmware Engineer](engineering/engineering-embedded-firmware-engineer.md) | Bare-metal, RTOS, ESP32/STM32/Nordic firmware | Production-grade embedded systems and IoT devices |
 | 🤖 [ROS 2 Robotics Engineer](engineering/engineering-ros2-robotics-engineer.md) | ROS 2 nodes, QoS, tf2, launch, Nav2, ros2_control | Taking robots from simulation to safe operation on hardware |
+| 🧮 [FEA & Abaqus Engineer](engineering/engineering-fea-abaqus-engineer.md) | Abaqus Standard/Explicit, Python CAE scripting, mesh convergence, V&V | Scripted, reproducible finite element models checked against analytical or test data |
 | 🚨 [Incident Response Commander](engineering/engineering-incident-response-commander.md) | Incident management, post-mortems, on-call | Managing production incidents and building incident readiness |
 | ⛓️ [Solidity Smart Contract Engineer](engineering/engineering-solidity-smart-contract-engineer.md) | EVM contracts, gas optimization, DeFi | Secure, gas-optimized smart contracts and DeFi protocols |
 | 🧭 [Codebase Onboarding Engineer](engineering/engineering-codebase-onboarding-engineer.md) | Fast developer onboarding, read-only codebase exploration, factual explanation | Helping new developers understand unfamiliar repos quickly by reading the code, tracing code paths, and stating facts about structure and behavior |
@@ -160,6 +162,7 @@ Building the future, one commit at a time.
 | 🪡 [Minimal Change Engineer](engineering/engineering-minimal-change-engineer.md) | Minimum-viable diffs | Fixing only what's asked, no scope creep |
 | 📜 [OrgScript Engineer](engineering/engineering-orgscript-engineer.md) | OrgScript grammar & AST validation | Designing/parsing OrgScript business-logic definitions |
 | 🧬 [Prompt Engineer](engineering/engineering-prompt-engineer.md) | LLM prompt design & optimization | Turning vague instructions into reliable AI behaviors |
+| 🧷 [AI Skill Protocol Engineer](engineering/engineering-ai-skill-protocol-engineer.md) | Skill packaging: activation rules, I/O contracts, eval harnesses, cross-host portability | Turning loose prompts, SOPs, and agent workflows into validated, portable skills |
 | 🕸️ [Multi-Agent Systems Architect](engineering/engineering-multi-agent-systems-architect.md) | Multi-agent pipeline design & governance | Topology, context, trust, failure recovery for agent systems |
 | 🛒 [Drupal Shopping Cart Engineer](engineering/engineering-drupal-shopping-cart.md) | Drupal Commerce storefronts | Catalog, payments, checkout, orders on Drupal 10/11 |
 | 🛍️ [WordPress Shopping Cart Engineer](engineering/engineering-wordpress-shopping-cart.md) | WooCommerce storefronts | Catalog, payments, checkout, conversion on WordPress |
@@ -242,6 +245,7 @@ Turning pipeline into revenue through craft, not CRM busywork.
 | 🏋️ [Sales Coach](sales/sales-coach.md) | Rep development, call coaching, pipeline review facilitation | Making every rep and every deal better through structured coaching |
 | 🎯 [Sales Outreach](specialized/sales-outreach.md) | Cold prospecting, multi-touch cadences, objection handling, proposals | Top-of-funnel B2B outreach — from cold email to booked discovery call |
 | 🧲 [Offer & Lead Gen Strategist](sales/sales-offer-lead-gen-strategist.md) | Offers & lead magnets | Top-of-funnel offer construction and lead gen |
+| 💬 [WhatsApp First Selling Strategist](sales/sales-whatsapp-first-selling-strategist.md) | B2B deals on WhatsApp: read-state signals, voice notes, template and consent rules | Selling in markets where WhatsApp, not email, is the primary business channel |
 
 ### 📢 Marketing Division
 
@@ -261,6 +265,7 @@ Growing your audience, one authentic interaction at a time.
 | 🌐 [Social Media Strategist](marketing/marketing-social-media-strategist.md) | Cross-platform strategy, campaigns | Overall social strategy, multi-platform campaigns |
 | 📕 [Xiaohongshu Specialist](marketing/marketing-xiaohongshu-specialist.md) | Lifestyle content, trend-driven strategy | Xiaohongshu growth, aesthetic storytelling, Gen Z audience |
 | 💬 [WeChat Official Account Manager](marketing/marketing-wechat-official-account.md) | Subscriber engagement, content marketing | WeChat OA strategy, community building, conversion optimization |
+| 📺 [WeChat Channels Strategist](marketing/marketing-wechat-channels-strategist.md) | WeChat Channels (视频号) video and livestream commerce, private-domain cold starts | Growing through WeChat's social graph and converting into OA, community, and Mini Program |
 | 🧠 [Zhihu Strategist](marketing/marketing-zhihu-strategist.md) | Thought leadership, knowledge-driven engagement | Zhihu authority building, Q&A strategy, lead generation |
 | 🇨🇳 [Baidu SEO Specialist](marketing/marketing-baidu-seo-specialist.md) | Baidu optimization, China SEO, ICP compliance | Ranking in Baidu and reaching China's search market |
 | 🎬 [Bilibili Content Strategist](marketing/marketing-bilibili-content-strategist.md) | B站 algorithm, danmaku culture, UP主 growth | Building audiences on Bilibili with community-first content |
@@ -280,6 +285,8 @@ Growing your audience, one authentic interaction at a time.
 | 🎙️ [Global Podcast Strategist](marketing/marketing-global-podcast-strategist.md) | Show positioning, audience growth, monetisation | Podcast launch, platform algorithms, sponsorship, community building |
 | 🔮 [AI Citation Strategist](marketing/marketing-ai-citation-strategist.md) | AEO/GEO, AI recommendation visibility, citation auditing | Improving brand visibility across ChatGPT, Claude, Gemini, Perplexity |
 | 🇨🇳 [China Market Localization Strategist](marketing/marketing-china-market-localization-strategist.md) | Full-stack China market localization, Douyin/Xiaohongshu/WeChat GTM | Turning trend signals into executable China go-to-market strategies |
+| 📍 [Local Life Services Strategist](marketing/marketing-local-life-services-strategist.md) | Meituan/Dianping ranking, group-buy margin math, Douyin Local Life POI content | Driving store visits for brick-and-mortar merchants in China |
+| 🚦 [China Ad Compliance Reviewer](marketing/marketing-china-ad-compliance-reviewer.md) | PRC Advertising Law, forbidden superlatives, category and platform red lines | Pre-flight review of copy and creative before it runs in mainland China |
 | 🎬 [Video Optimization Specialist](marketing/marketing-video-optimization-specialist.md) | YouTube algorithm strategy, chaptering, thumbnail concepts | YouTube channel growth, video SEO, audience retention optimization |
 | 🏗️ [AEO Foundations Architect](marketing/marketing-aeo-foundations.md) | AI Engine Optimization infrastructure | llms.txt, AI-aware robots.txt, agent discovery files |
 | 🤖 [Agentic Search Optimizer](marketing/marketing-agentic-search-optimizer.md) | WebMCP & agentic task completion | Making sites usable by AI browsing agents |
@@ -397,6 +404,8 @@ The unique specialists who don't fit in a box.
 | 🗃️ [ZK Steward](specialized/zk-steward.md) | Knowledge management, Zettelkasten, notes | Building connected, validated knowledge bases |
 | 🔌 [MCP Builder](specialized/specialized-mcp-builder.md) | Model Context Protocol servers, AI agent tooling | Building MCP servers that extend AI agent capabilities |
 | 📄 [Document Generator](specialized/specialized-document-generator.md) | PDF, PPTX, DOCX, XLSX generation from code | Professional document creation, reports, data visualization |
+| 🗂️ [Document Metadata Curator](specialized/document-metadata-curator.md) | Records classification, title/date/correspondent resolution, duplicate assessment | Turning incoming files into consistently titled, taxonomy-aligned records |
+| 🗂️ [Office Collaborator](specialized/specialized-office-collaborator.md) | Live COM automation of open Word, Excel, PowerPoint, and WPS documents | Editing a document the user still has open, without closing it or losing edits |
 | ⚙️ [Automation Governance Architect](specialized/automation-governance-architect.md) | Automation governance, n8n, workflow auditing | Evaluating and governing business automations at scale |
 | 📚 [Corporate Training Designer](specialized/corporate-training-designer.md) | Enterprise training, curriculum development | Designing training systems and learning programs |
 | 🌱 [Personal Growth Mentor](specialized/personal-growth-mentor.md) | Goal clarity, habit systems, accountability, life strategy | Cross-domain personal development without motivational fluff |
@@ -409,6 +418,7 @@ The unique specialists who don't fit in a box.
 | ☁️ [Salesforce Architect](specialized/specialized-salesforce-architect.md) | Multi-cloud Salesforce design, governor limits, integrations | Enterprise Salesforce architecture, org strategy, deployment pipelines |
 | 🇫🇷 [French Consulting Market Navigator](specialized/specialized-french-consulting-market.md) | ESN/SI ecosystem, portage salarial, rate positioning | Freelance consulting in the French IT market |
 | 🇰🇷 [Korean Business Navigator](specialized/specialized-korean-business-navigator.md) | Korean business culture, 품의 process, relationship mechanics | Foreign professionals navigating Korean business relationships |
+| 🇮🇳 [India Business Navigator](specialized/specialized-india-business-navigator.md) | Indian business culture, the indirect no, regional variation, 31 March fiscal year | Foreign professionals navigating Indian business relationships |
 | 🏗️ [Civil Engineer](specialized/specialized-civil-engineer.md) | Structural analysis, geotechnical design, global building codes | Multi-standard structural engineering across Eurocode, ACI, AISC, and more |
 | 🎧 [Customer Service](specialized/customer-service.md) | Omnichannel support, complaint handling, retention, escalation | Any industry customer support — retail, SaaS, hospitality, finance, logistics |
 | 🏥 [Healthcare Customer Service](specialized/healthcare-customer-service.md) | HIPAA-aware patient support, billing, insurance, emergency routing | Healthcare organizations needing compliant, empathetic patient support |
@@ -418,6 +428,7 @@ The unique specialists who don't fit in a box.
 | ⏱️ [Legal Billing & Time Tracking](specialized/legal-billing-time-tracking.md) | Time capture, billing narratives, IOLTA compliance, collections | Law firms maximizing revenue recovery and billing accuracy |
 | 📋 [Legal Client Intake](specialized/legal-client-intake.md) | Prospect qualification, conflict screening, consultation scheduling | Law firms converting inquiries into retained clients |
 | ⚖️ [Legal Document Review](specialized/legal-document-review.md) | Contract review, risk flagging, version comparison, compliance | Attorney-ready first-pass review across any practice area |
+| 📜 [Policy Document Generator](specialized/legal-policy-generator.md) | Terms of Service, Privacy, Cookie, and Acceptable Use policies from actual data practices | First drafts of product policies for attorney review |
 | 📜 [Open Source Compliance Lead](specialized/specialized-open-source-compliance-lead.md) | License policy by distribution model, SBOM license gates, REUSE, DCO/CLA | Shipping and contributing to open source without compliance surprises |
 | 🏦 [Loan Officer Assistant](specialized/loan-officer-assistant.md) | Borrower intake, TRID compliance, pipeline tracking, closing coordination | Mortgage and consumer lending teams |
 | 🏠 [Real Estate Buyer & Seller](specialized/real-estate-buyer-seller.md) | Buyer/seller representation, offers, transaction coordination | Residential and investment real estate transactions |
@@ -442,6 +453,8 @@ The unique specialists who don't fit in a box.
 | 🧡 [Aging Parent Care Companion](specialized/healthcare-aging-parent-care-companion.md) | Family caregiver decision-support | Appointment/medication coordination, care-team comms, caregiver wellbeing (HIPAA-aligned) |
 | 🏛️ [Master Plan Architect](specialized/specialized-master-plan-architect.md) | Architectural teaching, red-team plan critique | Deep architecture teaching, risk critique, comprehensive Markdown implementation plans (no code execution) |
 | 🎧 [Focus Music Architect](specialized/specialized-focus-music-architect.md) | Instrumental focus-music prompt engineering, neuroacoustics | Soundscape architecture, BPM curves, binaural layers for generative audio models |
+| 🎩 [Solo Founder Operator](specialized/solo-founder-operator.md) | Productized offers, fixed-price scoping, cash-flow discipline, agent delegation map | Running a one-person company leveraged by AI agents |
+| 🧰 [SMB Stack Triage Architect](specialized/specialized-smb-stack-triage-architect.md) | Keep/Bridge/Replace verdicts for CRM, ERP, invoicing, and legacy systems | Deciding what stays, what gets connected, and what gets replaced before automating |
 
 ### 💵 Finance Division
 
@@ -567,6 +580,8 @@ Finding, evaluating, and synthesizing existing evidence rather than generating n
 | Agent | Specialty | When to Use |
 |-------|-----------|-------------|
 | 🔍 [Research Synthesist](research/research-synthesist.md) | Literature review, source evaluation, citation tracing, evidence synthesis | Turning a scattered pile of sources into a structured, honestly-weighted map of what the evidence supports |
+| 📡 [AI Signal Curator](research/research-ai-signal-curator.md) | Tiered AI/ML/math source sweeps with provenance-labeled statistics | A short, ranked briefing on what actually changed, with depth on demand |
+| 🔎 [Social Evidence Researcher](research/research-social-evidence-researcher.md) | Cross-platform social research, discovery vs. inspected evidence, claim-to-evidence mapping | Social research whose conclusions can be traced back to inspectable sources |
 
 ---
 
