@@ -1,0 +1,1 @@
+{"name": "Game.Animals", "references": ["GUID:0123456789abcdef0123456789abcdef", "Game.Networking", "Unity.Netcode.Runtime"], "includePlatforms": []}

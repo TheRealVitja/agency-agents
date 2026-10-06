@@ -203,6 +203,56 @@ class ProjectTest(unittest.TestCase):
             self.assertEqual(RULES.implementer(p.component("platform"))[0], "sre-site-reliability-engineer")
 
 
+class UnityTest(unittest.TestCase):
+    """Unity projects: assemblies (.asmdef) are the components, their
+    references the graph — by name or by GUID of the referenced asmdef."""
+
+    def setUp(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, True)
+        self.root = tmp / "game"
+        shutil.copytree(HERE / "fixtures" / "unity-game", self.root)
+        (self.root / "gitignore.txt").rename(self.root / ".gitignore")
+        git(self.root, "init", "-q", "-b", "main")
+        # Unity's import cache and build output: ignored, so never components.
+        for junk in ("Library/ScriptAssemblies/Leak.asmdef", "Builds/Linux/Game_Data/Leak.cs", "Game.Core.csproj"):
+            (self.root / junk).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / junk).write_text("{}")
+        self.p = proj.analyze(self.root, rules=RULES)
+        self.by = {c.name: c for c in self.p.components}
+
+    def test_assemblies_are_components(self):
+        self.assertEqual(set(self.by), {"game", "Game.Core", "Game.Networking", "Game.Animals",
+                                        "Game.Animals.Editor", "Game.Tests.EditMode"})
+        self.assertIn("com.unity.netcode.gameobjects", self.by["game"].dependencies)
+        self.assertFalse(any("Library" in f or "Builds" in f for c in self.p.components for f in c.files))
+
+    def test_references_by_name_and_guid(self):
+        edges = {(e.source, e.target) for e in self.p.edges}
+        self.assertIn(("Game.Animals", "Game.Core"), edges)          # GUID reference
+        self.assertIn(("Game.Animals", "Game.Networking"), edges)    # name reference
+        self.assertIn(("Game.Animals.Editor", "Game.Animals"), edges)
+        self.assertIn(("Game.Tests.EditMode", "Game.Animals"), edges)
+
+    def test_owners(self):
+        owner = lambda name: RULES.implementer(self.by[name])[0]  # noqa: E731
+        self.assertEqual(owner("Game.Networking"), "unity-multiplayer-engineer")
+        self.assertEqual(owner("Game.Animals"), "unity-architect",
+                         "referencing Netcode does not make a gameplay system a networking job")
+        self.assertEqual(owner("Game.Animals.Editor"), "unity-editor-tool-developer")
+        self.assertEqual(owner("Game.Tests.EditMode"), "unity-architect")
+
+    def test_netcode_specialist_only_for_sync_work(self):
+        sync = planner.plan("Sync the wolf pack's hunting state to clients in co-op", self.p, RULES, ROSTER,
+                            planner.PlanOptions(components=["Game.Animals"]))[0]
+        self.assertEqual(sync.step("unity-netcode-game-animals").agent, "unity-multiplayer-engineer")
+        self.assertIn("unity-netcode-game-animals", sync.step("impl-game-animals").depends_on)
+        local = planner.plan("Let wolves rest at night", self.p, RULES, ROSTER,
+                             planner.PlanOptions(components=["Game.Animals"]))[0]
+        self.assertEqual([s.id for s in local.steps], ["impl-game-animals", "test", "review"])
+        self.assertEqual(local.step("test").agent, "unity-architect")
+
+
 class PlannerTest(unittest.TestCase):
     def setUp(self):
         self.p = proj.analyze(FIXTURE, rules=RULES)

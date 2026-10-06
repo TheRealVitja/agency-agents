@@ -20,6 +20,7 @@ import fnmatch
 import json
 import os
 import re
+import subprocess
 import tomllib
 from collections import Counter
 from dataclasses import dataclass, field
@@ -42,7 +43,9 @@ MANIFESTS = {
     "platformio.ini": "platformio", "foundry.toml": "solidity", "Chart.yaml": "helm",
     "deno.json": "deno", "oh-package.json5": "ohpm", "package.xml": "ros",
 }
-MANIFEST_GLOBS = {"*.uproject": "unreal", "*.csproj": "dotnet", "*.fsproj": "dotnet", "hardhat.config.*": "solidity"}
+MANIFEST_GLOBS = {"*.uproject": "unreal", "*.csproj": "dotnet", "*.fsproj": "dotnet", "hardhat.config.*": "solidity",
+                  "*.asmdef": "unity"}
+UNITY_MARKER = "ProjectSettings/ProjectVersion.txt"
 LANG_BY_EXT = {
     ".py": "python", ".ts": "typescript", ".tsx": "typescript", ".mts": "typescript", ".cts": "typescript",
     ".js": "javascript", ".jsx": "javascript", ".mjs": "javascript", ".cjs": "javascript", ".vue": "javascript",
@@ -272,6 +275,34 @@ def parse_manifest(path: Path) -> tuple[list[str], set[str], dict[str, Any]]:
         elif name.endswith(".uproject"):
             data = json.loads(text or "{}")
             deps.update(str(p.get("Name", "")).lower() for p in data.get("Plugins") or [] if p.get("Enabled"))
+        elif name == "ProjectVersion.txt":
+            # A Unity project: its packages live in Packages/manifest.json.
+            m = re.search(r"m_EditorVersion:\s*(\S+)", text)
+            if m:
+                extra["unity_version"] = m.group(1)
+            manifest = path.parent.parent / "Packages" / "manifest.json"
+            if manifest.is_file():
+                deps.update(d.lower() for d in (json.loads(_read(manifest) or "{}").get("dependencies") or {}))
+            deps.add("unity-project")
+        elif name.endswith(".asmdef"):
+            # A Unity assembly: the unit Unity compiles, and the natural
+            # component. Its references are its dependencies — by name, or by
+            # "GUID:<guid>" of the referenced .asmdef (resolved by the caller).
+            data = json.loads(text or "{}")
+            if data.get("name"):
+                names.append(str(data["name"]))
+            refs = [str(r) for r in data.get("references") or []]
+            deps.update(r.lower() for r in refs if not r.startswith("GUID:"))
+            guid_refs = [r[5:] for r in refs if r.startswith("GUID:")]
+            if guid_refs:
+                extra["guid_refs"] = guid_refs
+            deps.add("unity-asmdef")
+            if [p.lower() for p in data.get("includePlatforms") or []] == ["editor"]:
+                deps.add("unity-editor-only")
+            precompiled = " ".join(data.get("precompiledReferences") or []).lower()
+            if ("UNITY_INCLUDE_TESTS" in (data.get("defineConstraints") or [])
+                    or "unityengine.testrunner" in deps or "nunit.framework.dll" in precompiled):
+                deps.add("unity-test-assembly")
     except (ValueError, tomllib.TOMLDecodeError, IndexError) as e:
         extra["error"] = f"{name}: {e}"
     deps.discard("")
@@ -280,8 +311,32 @@ def parse_manifest(path: Path) -> tuple[list[str], set[str], dict[str, Any]]:
 
 # --- discovery -----------------------------------------------------------------
 
+def _skipped(rel: str) -> bool:
+    parts = PurePosixPath(rel).parts[:-1]
+    return any(p in SKIP_DIRS or (p.startswith(".") and p not in (".github", ".circleci")) for p in parts)
+
+
+def _git_files(root: Path) -> list[str] | None:
+    """Tracked and untracked-but-not-ignored files, so build output, Unity's
+    Library/ and generated .csproj files stay out the way .gitignore says."""
+    try:
+        proc = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                              cwd=root, capture_output=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    files = sorted({f for f in proc.stdout.decode("utf-8", "replace").split("\0") if f and not _skipped(f)})
+    return [f for f in files if (root / f).is_file()][:MAX_FILES]
+
+
 def _walk(root: Path) -> list[str]:
     """Relative paths of the project's files, minus build output and vendored code."""
+    if (root / ".git").exists() or subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=root,
+                                                   capture_output=True, text=True).stdout.strip() == "true":
+        listed = _git_files(root)
+        if listed is not None:
+            return listed
     files: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")
@@ -310,12 +365,12 @@ def _component_roots(files: list[str]) -> dict[str, list[str]]:
     for rel in files:
         p = PurePosixPath(rel)
         parent = str(p.parent)
-        if _manifest_kind(p.name):
+        if rel == UNITY_MARKER or rel.endswith("/" + UNITY_MARKER):  # Unity: the marker sits one level down
+            roots.setdefault(str(p.parent.parent), []).append(rel)
+        elif _manifest_kind(p.name):
             roots.setdefault(parent, []).append(rel)
         elif p.suffix == ".tf":
             tf_dirs.add(parent)
-        elif rel.endswith("ProjectSettings/ProjectVersion.txt"):  # Unity: the marker sits one level down
-            roots.setdefault(str(p.parent.parent), []).append(rel)
     # Terraform: a directory of .tf files is a component unless an ancestor
     # already is one (modules/ under an environment root stay with it).
     for d in sorted(tf_dirs, key=lambda x: x.count("/")):
@@ -540,7 +595,7 @@ def analyze(root: Path | str, graphify: Path | str | None = None, rules=None) ->
         ecos: list[str] = []
         extras: dict[str, Any] = {}
         for m in roots[r]:
-            kind = _manifest_kind(PurePosixPath(m).name)
+            kind = "unity" if m.endswith(UNITY_MARKER) else _manifest_kind(PurePosixPath(m).name)
             if kind and kind not in ecos:
                 ecos.append(kind)
             if not m.endswith("*.tf"):
@@ -617,6 +672,13 @@ def analyze(root: Path | str, graphify: Path | str | None = None, rules=None) ->
 
     # manifest edges: declared deps that name another component
     pkg_owner = {n.lower(): c.name for c in comps for n in c.package_names}
+    asmdef_guid: dict[str, str] = {}
+    for c in comps:
+        for m in c.manifests:
+            if m.endswith(".asmdef"):
+                g = re.search(r"^guid:\s*([0-9a-f]+)", _read(root / (m + ".meta")), re.M)
+                if g:
+                    asmdef_guid[g.group(1)] = c.name
     manifest_hits: dict[tuple[str, str], list[str]] = {}
     for c in comps:
         for dep in c.dependencies:
@@ -624,6 +686,10 @@ def analyze(root: Path | str, graphify: Path | str | None = None, rules=None) ->
             if owner and owner != c.name:
                 manifest_hits.setdefault((c.name, owner), []).append(f"declares dependency {dep}")
         extras = json.loads(c.evidence["_extras"][0]) if c.evidence.get("_extras") else {}
+        for guid in extras.get("guid_refs", []):
+            owner = asmdef_guid.get(guid)
+            if owner and owner != c.name:
+                manifest_hits.setdefault((c.name, owner), []).append(f"asmdef reference GUID:{guid[:8]}")
         for lp in extras.get("local_paths", []):
             base = "" if c.path == "." else c.path + "/"
             target = os.path.normpath(base + str(lp).replace("\\", "/")).replace(os.sep, "/")

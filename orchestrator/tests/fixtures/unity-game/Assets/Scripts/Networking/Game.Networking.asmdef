@@ -1,0 +1,1 @@
+{"name": "Game.Networking", "references": ["Game.Core", "Unity.Netcode.Runtime"], "includePlatforms": []}

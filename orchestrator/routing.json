@@ -3,7 +3,10 @@
   "tags": [
     {"tag": "unreal", "kind": "platform", "agents": ["unreal-systems-engineer"], "files": ["*.uproject", "*.uplugin"]},
     {"tag": "godot", "kind": "platform", "agents": ["godot-gameplay-scripter"], "files": ["project.godot", "*.gd"]},
-    {"tag": "unity", "kind": "platform", "agents": ["unity-architect"], "files": ["ProjectSettings/ProjectVersion.txt", "*.unity"]},
+    {"tag": "unity-tests", "kind": "platform", "agents": ["unity-architect"], "deps": ["unity-test-assembly"]},
+    {"tag": "unity-editor", "kind": "platform", "agents": ["unity-editor-tool-developer"], "deps": ["unity-editor-only"]},
+    {"tag": "unity-networking", "kind": "platform", "agents": ["unity-multiplayer-engineer"], "names": ["*network*", "*netcode*", "*multiplayer*", "*lobby*"], "requires_deps": ["unity-asmdef"]},
+    {"tag": "unity", "kind": "platform", "agents": ["unity-architect"], "files": ["ProjectSettings/ProjectVersion.txt", "*.unity"], "deps": ["unity-project", "unity-asmdef"]},
     {"tag": "blender-addon", "kind": "platform", "agents": ["blender-add-on-engineer"], "files": ["blender_manifest.toml"]},
     {"tag": "solidity", "kind": "platform", "agents": ["solidity-smart-contract-engineer"], "files": ["*.sol", "foundry.toml", "hardhat.config.*"], "deps": ["hardhat", "@openzeppelin/contracts", "forge-std"]},
     {"tag": "harmonyos", "kind": "platform", "agents": ["harmonyos-app-engineer"], "files": ["oh-package.json5", "*.ets"]},
@@ -32,6 +35,10 @@
     {"tag": "search", "kind": "concern", "agents": ["search-relevance-engineer"], "deps": ["elasticsearch*", "@elastic/*", "opensearch*", "meilisearch*", "typesense*", "algoliasearch"], "keywords": ["search", "ranking", "relevance", "suche"]},
     {"tag": "container", "kind": "concern", "agents": ["devops-automator"], "files": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yaml", "compose.yml"], "keywords": ["docker", "container", "image", "deploy", "deployment", "kubernetes", "k8s"]},
     {"tag": "ci", "kind": "concern", "agents": ["devops-automator"], "files": [".github/workflows/", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/"], "keywords": ["ci", "pipeline", "workflow", "github actions", "build"]},
+    {"tag": "unity-netcode", "kind": "concern", "agents": ["unity-multiplayer-engineer"], "deps": ["unity.netcode.runtime", "unity.netcode.components", "unity.networking.transport", "unity.services.multiplayer", "fishnet.runtime", "mirror"], "keywords": ["multiplayer", "netcode", "network", "networked", "networking", "sync", "synchronize", "synchronise", "replicate", "replication", "rpc", "host", "client", "server", "coop", "co-op", "lobby", "relay", "authority", "lag", "latency", "koop", "mehrspieler"]},
+    {"tag": "game-audio", "kind": "concern", "agents": ["game-audio-engineer"], "files": ["*.mixer", "*.bank", "*.wwu"], "deps": ["com.fmod*", "fmodunity", "wwise*", "ak.wwise*"], "keywords": ["audio", "sound", "sounds", "music", "sfx", "footstep", "footsteps", "ambience", "mixer", "geräusch", "geräusche", "musik"]},
+    {"tag": "game-art-pipeline", "kind": "concern", "agents": ["technical-artist"], "files": ["*.fbx", "*.prefab"], "requires_deps": ["unity-project"], "keywords": ["lod", "vfx", "particle", "particles", "draw call", "draw calls", "batching", "texture budget", "import settings", "animation rig", "art pipeline"]},
+    {"tag": "unity-shaders", "kind": "concern", "agents": ["unity-shader-graph-artist"], "files": ["*.shadergraph", "*.shadersubgraph", "*.shader", "*.hlsl"], "keywords": ["shader", "shaders", "shadergraph", "material", "materials", "vfx", "rendering", "urp", "hdrp"]},
     {"tag": "e2e-tests", "kind": "concern", "agents": ["test-automation-engineer"], "deps": ["@playwright/test", "playwright", "cypress", "selenium", "puppeteer", "webdriverio"], "keywords": ["e2e", "end-to-end", "playwright", "cypress", "flaky"]},
 
     {"tag": "python", "kind": "language", "agents": ["senior-developer"], "languages": ["python"]},
@@ -45,14 +52,16 @@
     "lead": ["software-architect"],
     "fallback": ["senior-developer"],
     "test": ["test-automation-engineer"],
-    "test_by_tag": {"api": ["api-tester"]},
+    "test_by_tag": {"api": ["api-tester"], "unity": ["unity-architect"]},
     "review": ["code-reviewer"]
   },
-  "layer_order": ["infra", "data-pipeline", "rag", "ml", "api", "desktop", "mobile", "frontend", "web-gis", "docs"],
+  "layer_order": ["infra", "data-pipeline", "rag", "ml", "api", "unity-networking", "unity", "desktop", "mobile", "frontend", "web-gis", "docs", "unity-editor", "unity-tests"],
   "intents": [
     {"intent": "security", "agents": ["application-security-engineer"], "keywords": ["security", "secure", "vulnerability", "vulnerabilities", "xss", "csrf", "injection", "owasp", "secret", "secrets", "sicherheit", "schwachstelle"]},
     {"intent": "performance", "agents": ["performance-benchmarker"], "keywords": ["performance", "slow", "latency", "speed", "faster", "throughput", "benchmark", "memory", "langsam", "schneller"]},
     {"intent": "accessibility", "agents": ["accessibility-auditor"], "keywords": ["accessibility", "a11y", "wcag", "screen reader", "aria", "barrierefrei", "barrierefreiheit"]},
+    {"intent": "game-economy", "agents": ["economy-designer"], "keywords": ["balance", "balancing", "economy", "loot", "drop rate", "drop rates", "currency", "prices", "trading", "crafting costs", "wirtschaft", "balancing"]},
+    {"intent": "game-design", "agents": ["game-designer"], "keywords": ["gameplay", "game loop", "gameplay loop", "progression", "difficulty", "game design", "fun", "spielmechanik", "schwierigkeit"]},
     {"intent": "privacy", "agents": ["privacy-engineer"], "keywords": ["privacy", "gdpr", "dsgvo", "pii", "personal data", "datenschutz"]}
   ]
 }

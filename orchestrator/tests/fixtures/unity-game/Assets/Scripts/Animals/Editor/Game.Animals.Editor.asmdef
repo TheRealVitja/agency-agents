@@ -1,0 +1,1 @@
+{"name": "Game.Animals.Editor", "references": ["Game.Animals"], "includePlatforms": ["Editor"]}

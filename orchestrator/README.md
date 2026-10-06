@@ -160,6 +160,9 @@ steps:
   fallback; **concern** tags (database, auth, payments, realtime, i18n,
   search, container, CI, e2e tests) send their agent in first when the task
   hits one of their `keywords`.
+- `names` (component name patterns) and `requires_deps` are conditions, not
+  evidence: `{"names": ["*network*"], "requires_deps": ["unity-asmdef"]}`
+  matches a Unity assembly called `*.Networking`, never a Go package.
 - `layer_order` breaks ties when the graph says nothing: infrastructure, data
   and ML before APIs, APIs before desktop/mobile/web clients, docs last.
 - `phases` names the architect, tester (per tag), reviewer and fallback.
@@ -167,6 +170,30 @@ steps:
 
 Every agent named there must exist in the roster — the tests check it, so a
 renamed agent fails CI instead of failing a run.
+
+## Unity projects
+
+A Unity project (`ProjectSettings/ProjectVersion.txt`) is one component, its
+packages read from `Packages/manifest.json`; every assembly definition
+(`.asmdef`) inside it is a component of its own, and its `references` — by
+name or `GUID:` — are the dependency graph. File listing follows
+`.gitignore`, so `Library/`, `Builds/` and generated `.csproj` files never
+count.
+
+Routing: gameplay assemblies → Unity Architect, an assembly named
+`*Network*`/`*Netcode*`/`*Multiplayer*` → Unity Multiplayer Engineer, editor-only
+assemblies → Unity Editor Tool Developer, test assemblies → Unity Architect.
+Referencing Netcode does not make a system a networking job: the Multiplayer
+Engineer works on it first only when the task is about sync, RPCs, co-op and
+the like. Shader, art-pipeline and audio work get the Shader Graph Artist,
+Technical Artist and Game Audio Engineer the same way; balancing and
+gameplay-loop tasks add an Economy Designer or Game Designer review.
+
+Agents cannot open the Unity editor from the run's worktree, so nothing
+compiles or runs tests there: review the branch in Unity (it also creates the
+`.meta` files for new scripts) before you merge. Project MCP servers such as
+a Unity bridge stay off in runs — they would act on the editor that has your
+main checkout open, not on the run's branch.
 
 ## Per-project overrides
 

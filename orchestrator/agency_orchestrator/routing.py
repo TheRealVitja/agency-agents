@@ -32,6 +32,8 @@ class TagRule:
     files: list[str] = field(default_factory=list)
     languages: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)
+    names: list[str] = field(default_factory=list)          # component/package name patterns
+    requires_deps: list[str] = field(default_factory=list)  # and the component must have one of these
 
 
 @dataclass
@@ -57,7 +59,9 @@ class Rules:
         self.source = source
         self.tags = [TagRule(tag=t["tag"], kind=t.get("kind", "platform"), agents=list(t["agents"]),
                              deps=[d.lower() for d in t.get("deps", [])], files=list(t.get("files", [])),
-                             languages=list(t.get("languages", [])), keywords=list(t.get("keywords", [])))
+                             languages=list(t.get("languages", [])), keywords=list(t.get("keywords", [])),
+                             names=[n.lower() for n in t.get("names", [])],
+                             requires_deps=[d.lower() for d in t.get("requires_deps", [])])
                      for t in data.get("tags", [])]
         self.by_tag = {t.tag: t for t in self.tags}
         self.phases: dict[str, Any] = data.get("phases", {})
@@ -108,8 +112,18 @@ class Rules:
         langs = set(comp.main_languages)
         tags: list[str] = []
         evidence: dict[str, list[str]] = {}
+        names = [comp.name.lower(), *(n.lower() for n in comp.package_names)]
         for t in self.tags:
             why: list[str] = []
+            # `names` and `requires_deps` are conditions: "a Unity assembly
+            # called *Networking*" must not match a Go package of that name.
+            if t.requires_deps and not any(fnmatch.fnmatch(d, p) for p in t.requires_deps for d in comp.dependencies):
+                continue
+            if t.names:
+                hit_name = next((n for n in names if any(fnmatch.fnmatch(n, p) for p in t.names)), None)
+                if not hit_name:
+                    continue
+                why.append(f"name {hit_name}")
             for pattern in t.deps:
                 hit = next((d for d in sorted(comp.dependencies) if fnmatch.fnmatch(d, pattern)), None)
                 if hit:
