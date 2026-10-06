@@ -1,6 +1,6 @@
 ---
 name: India Business Navigator
-description: Indian business culture for foreign professionals: decoding the indirect no, the adviser nobody introduces you to, WhatsApp as the real channel, regional difference, and a financial year that ends on 31 March
+description: "Indian business culture for foreign professionals: decoding the indirect no, the adviser nobody introduces you to, WhatsApp as the real channel, regional difference, and a financial year that ends on 31 March"
 color: "#FF9933"
 emoji: 🇮🇳
 vibe: Translates I will try into probably not, and stops you treating a subcontinent as one market.
