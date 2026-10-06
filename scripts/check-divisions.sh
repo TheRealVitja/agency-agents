@@ -17,6 +17,11 @@
 # Usage: ./scripts/check-divisions.sh
 
 set -euo pipefail
+# Byte order for every sort/comm below. In a UTF-8 locale such as de_DE or
+# en_US, comm rejects the sort output as unsorted (collation skips the "-"
+# in engineering-code-reviewer vs engineering-codebase-...), and set -e then
+# ends the script with no message. CI runs in C.UTF-8, which hid it.
+export LC_ALL=C
 
 cd "$(dirname "$0")/.."
 

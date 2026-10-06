@@ -7,6 +7,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   check-tools:
     name: tools.json is the single source of truth
@@ -22,6 +25,17 @@ jobs:
       - name: Validate generated Hermes plugin
         run: python3 scripts/check-hermes-plugin.py
 
+      # test-hermes-plugin.py reads integrations/hermes, so generate it first.
+      # test-hermes-search.py builds its own copy in a temp dir and needs nothing.
+      - name: Generate the Hermes plugin
+        run: bash scripts/convert.sh --tool hermes
+
+      - name: Hermes router behavior (delegation lifecycle)
+        run: python3 scripts/test-hermes-plugin.py
+
+      - name: Hermes router search quality (ranking floors)
+        run: python3 scripts/test-hermes-search.py
+
       - name: Validate converted YAML frontmatter
         run: bash scripts/test-convert-frontmatter.sh
 
@@ -35,6 +49,9 @@ jobs:
         # Drift is advisory on pull requests (agent PRs always move their own manifest line;
         # maintainers regenerate at landing) and enforced on pushes to main.
         run: bash scripts/test-convert-outputs.sh ${{ github.event_name == 'pull_request' && '--drift=advisory' || '' }}
+
+      - name: Parse indented code fences like lib.sh in the outputs eval
+        run: bash scripts/test-convert-fence-model.sh
 
       - name: Validate agent selection (install.sh --agent / --agents-file)
         run: bash scripts/test-agent-selection.sh

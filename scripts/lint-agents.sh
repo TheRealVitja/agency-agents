@@ -4,6 +4,7 @@
 #   1. YAML frontmatter must exist with name, description, color (ERROR)
 #   2. Recommended sections checked but only warned (WARN)
 #   3. File must have meaningful content
+#   4. Shell code fences must name a canonical shell — bash or powershell (WARN)
 #
 # Usage: ./scripts/lint-agents.sh [file ...]
 #   If no files given, scans all agent directories.
@@ -46,10 +47,11 @@ RECOMMENDED_SECTIONS=("Identity" "Core Mission" "Critical Rules")
 # `navy` sat there unnoticed across four agents.
 KNOWN_COLORS="$(
   awk '/^resolve_opencode_color\(\)/{f=1; next} f && /^}/{exit} f' "$SCRIPT_DIR/convert.sh" 2>/dev/null \
-    | grep -oE '^ +[a-z-]+\)' | tr -d ' )'
+    | grep -oE '^ +[a-z-]+\)' | tr -d ' )' || true
 )"
 # If the map could not be read, check hex values only rather than rejecting
-# every named color on the strength of an empty list.
+# every named color on the strength of an empty list. (The `|| true` above keeps
+# set -e from exiting silently before this line gets the chance.)
 [[ -n "$KNOWN_COLORS" ]] || echo "WARN  could not read resolve_opencode_color() from $SCRIPT_DIR/convert.sh — skipping the color-name check"
 
 errors=0
@@ -132,6 +134,13 @@ lint_file() {
     fi
   done
 
+  local name
+  name="$(get_field name "$file")"
+  if [[ -n "$name" && -z "$(slugify "$name")" ]]; then
+    echo "ERROR $file: name '$name' produces an empty agent slug; include an ASCII alias"
+    errors=$((errors + 1))
+  fi
+
   # 2b. The color has to be one the converters can resolve. Checking only that
   # the field exists let four agents ship a name nothing maps, and they render
   # grey in OpenCode with no warning anywhere.
@@ -168,6 +177,19 @@ lint_file() {
     echo "WARN  $file: body seems very short (< 50 words)"
     warnings=$((warnings + 1))
   fi
+
+  # 5. Shell code fences must name a canonical shell. A fence tag only ever
+  #    appears on an OPENING fence (closers are a bare ```), so a plain grep is
+  #    enough here — no fence-state tracking. Canonical tags are `bash` (POSIX
+  #    shell: macOS/Linux/WSL/Git Bash) and `powershell` (Windows); ambiguous
+  #    aliases hide which shell a block is for. See CONTRIBUTING.md.
+  local bad_fence
+  while IFS= read -r bad_fence; do
+    [[ -n "$bad_fence" ]] || continue
+    echo "WARN  $file: ambiguous shell fence '\`\`\`${bad_fence}' — use \`\`\`bash (POSIX shell) or \`\`\`powershell (Windows); see CONTRIBUTING.md"
+    warnings=$((warnings + 1))
+  done < <(grep -oiE '^```(sh|shell|zsh|console|terminal|shell-session|cmd|bat|batch|dos|ps|ps1|pwsh)[[:space:]]*$' <<<"$body" \
+             | sed -e 's/^```//' -e 's/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]' | sort -u)
 
   local soul_headers=0
   local agents_headers=0

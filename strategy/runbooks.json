@@ -1,5 +1,5 @@
 {
-  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — the agent .md filename stem (the corpus id), e.g. engineering/engineering-frontend-developer.md -> \"engineering-frontend-developer\"; specialized/agents-orchestrator.md -> \"agents-orchestrator\" (note: the stem is NOT always division-prefixed, and display names are prefixed/drift — so rosters reference slugs, which are rename-proof and testable). `mode` is the NEXUS activation mode (Full | Sprint | Micro) that sizes the team; `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with the markdown in strategy/runbooks/; every slug must resolve to a real agent file (scripts/check-runbooks.sh can guard this, mirroring check-divisions.sh). strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
+  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — derived from each agent's `name:` frontmatter, matching the rendered catalog IDs (e.g. engineering/engineering-frontend-developer.md -> \"frontend-developer\"). The filename stem is a corpus id and may differ from the rendered agent ID. `mode` is the NEXUS activation mode (Full | Sprint | Micro) that sizes the team; `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with the markdown in strategy/runbooks/; every slug must resolve to a real agent file (scripts/check-runbooks.sh can guard this, mirroring check-divisions.sh). strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
   "runbooks": [
     {
       "slug": "startup-mvp",
@@ -14,35 +14,35 @@
           "activation": "always",
           "agents": [
             "agents-orchestrator",
-            "project-manager-senior",
-            "product-sprint-prioritizer",
-            "design-ux-architect",
-            "engineering-frontend-developer",
-            "engineering-backend-architect",
-            "engineering-devops-automator",
-            "testing-evidence-collector",
-            "testing-reality-checker"
+            "senior-project-manager",
+            "sprint-prioritizer",
+            "ux-architect",
+            "frontend-developer",
+            "backend-architect",
+            "devops-automator",
+            "evidence-collector",
+            "reality-checker"
           ]
         },
         {
           "group": "Growth Team",
           "activation": "week 3+",
           "agents": [
-            "marketing-growth-hacker",
-            "marketing-content-creator",
-            "marketing-social-media-strategist"
+            "growth-hacker",
+            "content-creator",
+            "social-media-strategist"
           ]
         },
         {
           "group": "Support Team",
           "activation": "as needed",
           "agents": [
-            "design-brand-guardian",
-            "support-analytics-reporter",
-            "engineering-rapid-prototyper",
-            "engineering-ai-engineer",
-            "testing-performance-benchmarker",
-            "support-infrastructure-maintainer"
+            "brand-guardian",
+            "analytics-reporter",
+            "rapid-prototyper",
+            "ai-engineer",
+            "performance-benchmarker",
+            "infrastructure-maintainer"
           ]
         }
       ]
@@ -60,39 +60,39 @@
           "activation": "always",
           "agents": [
             "agents-orchestrator",
-            "project-management-project-shepherd",
-            "project-manager-senior",
-            "product-sprint-prioritizer",
-            "design-ux-architect",
-            "design-ux-researcher",
-            "design-ui-designer",
-            "engineering-frontend-developer",
-            "engineering-backend-architect",
-            "engineering-senior-developer",
-            "engineering-devops-automator",
-            "testing-evidence-collector",
-            "testing-api-tester",
-            "testing-reality-checker",
-            "testing-performance-benchmarker"
+            "project-shepherd",
+            "senior-project-manager",
+            "sprint-prioritizer",
+            "ux-architect",
+            "ux-researcher",
+            "ui-designer",
+            "frontend-developer",
+            "backend-architect",
+            "senior-developer",
+            "devops-automator",
+            "evidence-collector",
+            "api-tester",
+            "reality-checker",
+            "performance-benchmarker"
           ]
         },
         {
           "group": "Compliance & Governance",
           "activation": "as needed",
           "agents": [
-            "support-legal-compliance-checker",
-            "design-brand-guardian",
-            "support-finance-tracker",
-            "support-executive-summary-generator"
+            "legal-compliance-checker",
+            "brand-guardian",
+            "finance-tracker",
+            "executive-summary-generator"
           ]
         },
         {
           "group": "Quality Assurance",
           "activation": "as needed",
           "agents": [
-            "testing-test-results-analyzer",
-            "testing-workflow-optimizer",
-            "project-management-experiment-tracker"
+            "test-results-analyzer",
+            "workflow-optimizer",
+            "experiment-tracker"
           ]
         }
       ]
@@ -109,32 +109,32 @@
           "group": "Campaign Core",
           "activation": "always",
           "agents": [
-            "marketing-social-media-strategist",
-            "marketing-content-creator",
-            "marketing-growth-hacker",
-            "design-brand-guardian",
-            "support-analytics-reporter"
+            "social-media-strategist",
+            "content-creator",
+            "growth-hacker",
+            "brand-guardian",
+            "analytics-reporter"
           ]
         },
         {
           "group": "Platform Specialists",
           "activation": "as needed",
           "agents": [
-            "marketing-twitter-engager",
-            "marketing-tiktok-strategist",
-            "marketing-instagram-curator",
-            "marketing-reddit-community-builder",
-            "marketing-app-store-optimizer"
+            "twitter-engager",
+            "tiktok-strategist",
+            "instagram-curator",
+            "reddit-community-builder",
+            "app-store-optimizer"
           ]
         },
         {
           "group": "Support",
           "activation": "as needed",
           "agents": [
-            "product-trend-researcher",
-            "project-management-experiment-tracker",
-            "support-executive-summary-generator",
-            "support-legal-compliance-checker"
+            "trend-researcher",
+            "experiment-tracker",
+            "executive-summary-generator",
+            "legal-compliance-checker"
           ]
         }
       ]
@@ -151,22 +151,52 @@
           "group": "P0 Critical Response",
           "activation": "always",
           "agents": [
-            "support-infrastructure-maintainer",
-            "engineering-devops-automator",
-            "engineering-backend-architect",
-            "engineering-frontend-developer",
-            "support-support-responder",
-            "support-executive-summary-generator"
+            "infrastructure-maintainer",
+            "devops-automator",
+            "backend-architect",
+            "frontend-developer",
+            "support-responder",
+            "executive-summary-generator"
           ]
         },
         {
           "group": "Verification & Post-Mortem",
           "activation": "post-fix",
           "agents": [
-            "testing-evidence-collector",
-            "testing-api-tester",
-            "testing-workflow-optimizer",
-            "product-sprint-prioritizer"
+            "evidence-collector",
+            "api-tester",
+            "workflow-optimizer",
+            "sprint-prioritizer"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "nexus-spatial-discovery",
+      "title": "Nexus Spatial Discovery",
+      "mode": "NEXUS-Sprint",
+      "duration": "1-2 weeks",
+      "summary": "Full-agency product discovery exercise — 8 specialists run in parallel to evaluate a software opportunity and produce a unified plan.",
+      "doc": "examples/nexus-spatial-discovery.md",
+      "roster": [
+        {
+          "group": "Discovery Core",
+          "activation": "always",
+          "agents": [
+            "trend-researcher",
+            "ux-researcher",
+            "backend-architect",
+            "brand-guardian"
+          ]
+        },
+        {
+          "group": "Go-to-Market & Delivery",
+          "activation": "always",
+          "agents": [
+            "growth-hacker",
+            "support-responder",
+            "project-shepherd",
+            "xr-interface-architect"
           ]
         }
       ]

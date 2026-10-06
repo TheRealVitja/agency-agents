@@ -43,6 +43,8 @@ brew install --cask msitarzewski/agency-agents/agency-agents
 
 Prefer the command line? The script-based options below install the same agents.
 
+> **On Windows:** the install and convert scripts under `scripts/` are Bash (POSIX shell) — run them from **Git Bash** or **WSL**, or use the app above, which is native on Windows. (One exception: `scripts/i18n/localize-agents-zh.ps1` is PowerShell and runs natively — see `scripts/i18n/README.md`.) The same convention holds inside agent files: a `bash` code fence is POSIX shell, a `powershell` fence is Windows.
+
 ### Option 2: Use with Claude Code
 
 ```bash
@@ -66,7 +68,7 @@ Each agent file contains:
 
 Browse the agents below and copy/adapt the ones you need!
 
-### Option 4: Use with Other Tools (GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Kimi Code, Codex, Osaurus, Hermes, Mistral Vibe, DeepSeek Harness)
+### Option 4: Use with Other Tools (GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Qwen Code, ZCode, Kimi Code, Codex, Osaurus, Hermes, Mistral Vibe, DeepSeek Harness)
 
 ```bash
 # Step 1 -- generate integration files for all supported tools
@@ -84,6 +86,8 @@ Browse the agents below and copy/adapt the ones you need!
 ./scripts/install.sh --tool cursor
 ./scripts/install.sh --tool aider
 ./scripts/install.sh --tool windsurf
+./scripts/install.sh --tool qwen
+./scripts/install.sh --tool zcode
 ./scripts/install.sh --tool kimi
 ./scripts/install.sh --tool codex
 ./scripts/install.sh --tool osaurus
@@ -102,7 +106,7 @@ Browse the agents below and copy/adapt the ones you need!
 ./scripts/install.sh --tool opencode --division engineering --dry-run
 ```
 
-`--agent` and `--agents-file` take an agent's slug (as `--list agents` prints it), its display name, or its file name without `.md` — the id the [runbook rosters](strategy/runbooks.json) use — so a runbook's team installs as listed:
+`--agent` and `--agents-file` take an agent's slug (as `--list agents` prints it, and as the [runbook rosters](strategy/runbooks.json) list it), its display name, or its file name without `.md`, so a runbook's team installs as listed:
 
 ```bash
 python3 -c 'import json, sys
@@ -128,6 +132,8 @@ Building the future, one commit at a time.
 | 🎨 [Frontend Developer](engineering/engineering-frontend-developer.md) | React/Vue/Angular, UI implementation, performance | Modern web apps, pixel-perfect UIs, Core Web Vitals optimization |
 | 🏗️ [Backend Architect](engineering/engineering-backend-architect.md) | API design, database architecture, scalability | Server-side systems, microservices, cloud infrastructure |
 | 📱 [Mobile App Builder](engineering/engineering-mobile-app-builder.md) | iOS/Android, React Native, Flutter | Native and cross-platform mobile applications |
+| 🔐 [Mobile Security Engineer](engineering/engineering-mobile-security.md) | OWASP Mobile Top 10, MASVS, NIST mobile threats | iOS/Android security assessments, secure mobile SDLC, MASVS compliance |
+| 🪐 [HarmonyOS App Engineer](engineering/engineering-harmonyos-app-engineer.md) | ArkTS/ArkUI, Stage-model abilities, HAR/HSP packaging, AppGallery release | Native HarmonyOS NEXT apps and Android-to-ArkTS migration |
 | 🤖 [AI Engineer](engineering/engineering-ai-engineer.md) | ML models, deployment, AI integration | Machine learning features, data pipelines, AI-powered apps |
 | 🚀 [DevOps Automator](engineering/engineering-devops-automator.md) | CI/CD, infrastructure automation, cloud ops | Pipeline development, deployment automation, monitoring |
 | 🌐 [Network Engineer](engineering/engineering-network-engineer.md) | Cisco IOS/IOS-XE, Juniper Junos, Palo Alto PAN-OS | Router/switch/firewall configuration, BGP/OSPF, ACLs, show-output troubleshooting |
@@ -136,6 +142,8 @@ Building the future, one commit at a time.
 | 🔧 [Filament Optimization Specialist](engineering/engineering-filament-optimization-specialist.md) | Filament PHP admin UX, structural form redesign, resource optimization | Restructuring Filament resources/forms/tables for faster, cleaner admin workflows |
 | ⚡ [Autonomous Optimization Architect](engineering/engineering-autonomous-optimization-architect.md) | LLM routing, cost optimization, shadow testing | Autonomous systems needing intelligent API selection and cost guardrails |
 | 🔩 [Embedded Firmware Engineer](engineering/engineering-embedded-firmware-engineer.md) | Bare-metal, RTOS, ESP32/STM32/Nordic firmware | Production-grade embedded systems and IoT devices |
+| 🤖 [ROS 2 Robotics Engineer](engineering/engineering-ros2-robotics-engineer.md) | ROS 2 nodes, QoS, tf2, launch, Nav2, ros2_control | Taking robots from simulation to safe operation on hardware |
+| 🧮 [FEA & Abaqus Engineer](engineering/engineering-fea-abaqus-engineer.md) | Abaqus Standard/Explicit, Python CAE scripting, mesh convergence, V&V | Scripted, reproducible finite element models checked against analytical or test data |
 | 🚨 [Incident Response Commander](engineering/engineering-incident-response-commander.md) | Incident management, post-mortems, on-call | Managing production incidents and building incident readiness |
 | ⛓️ [Solidity Smart Contract Engineer](engineering/engineering-solidity-smart-contract-engineer.md) | EVM contracts, gas optimization, DeFi | Secure, gas-optimized smart contracts and DeFi protocols |
 | 🧭 [Codebase Onboarding Engineer](engineering/engineering-codebase-onboarding-engineer.md) | Fast developer onboarding, read-only codebase exploration, factual explanation | Helping new developers understand unfamiliar repos quickly by reading the code, tracing code paths, and stating facts about structure and behavior |
@@ -156,6 +164,7 @@ Building the future, one commit at a time.
 | 🪡 [Minimal Change Engineer](engineering/engineering-minimal-change-engineer.md) | Minimum-viable diffs | Fixing only what's asked, no scope creep |
 | 📜 [OrgScript Engineer](engineering/engineering-orgscript-engineer.md) | OrgScript grammar & AST validation | Designing/parsing OrgScript business-logic definitions |
 | 🧬 [Prompt Engineer](engineering/engineering-prompt-engineer.md) | LLM prompt design & optimization | Turning vague instructions into reliable AI behaviors |
+| 🧷 [AI Skill Protocol Engineer](engineering/engineering-ai-skill-protocol-engineer.md) | Skill packaging: activation rules, I/O contracts, eval harnesses, cross-host portability | Turning loose prompts, SOPs, and agent workflows into validated, portable skills |
 | 🕸️ [Multi-Agent Systems Architect](engineering/engineering-multi-agent-systems-architect.md) | Multi-agent pipeline design & governance | Topology, context, trust, failure recovery for agent systems |
 | 🛒 [Drupal Shopping Cart Engineer](engineering/engineering-drupal-shopping-cart.md) | Drupal Commerce storefronts | Catalog, payments, checkout, orders on Drupal 10/11 |
 | 🛍️ [WordPress Shopping Cart Engineer](engineering/engineering-wordpress-shopping-cart.md) | WooCommerce storefronts | Catalog, payments, checkout, conversion on WordPress |
@@ -238,6 +247,7 @@ Turning pipeline into revenue through craft, not CRM busywork.
 | 🏋️ [Sales Coach](sales/sales-coach.md) | Rep development, call coaching, pipeline review facilitation | Making every rep and every deal better through structured coaching |
 | 🎯 [Sales Outreach](specialized/sales-outreach.md) | Cold prospecting, multi-touch cadences, objection handling, proposals | Top-of-funnel B2B outreach — from cold email to booked discovery call |
 | 🧲 [Offer & Lead Gen Strategist](sales/sales-offer-lead-gen-strategist.md) | Offers & lead magnets | Top-of-funnel offer construction and lead gen |
+| 💬 [WhatsApp First Selling Strategist](sales/sales-whatsapp-first-selling-strategist.md) | B2B deals on WhatsApp: read-state signals, voice notes, template and consent rules | Selling in markets where WhatsApp, not email, is the primary business channel |
 
 ### 📢 Marketing Division
 
@@ -257,6 +267,7 @@ Growing your audience, one authentic interaction at a time.
 | 🌐 [Social Media Strategist](marketing/marketing-social-media-strategist.md) | Cross-platform strategy, campaigns | Overall social strategy, multi-platform campaigns |
 | 📕 [Xiaohongshu Specialist](marketing/marketing-xiaohongshu-specialist.md) | Lifestyle content, trend-driven strategy | Xiaohongshu growth, aesthetic storytelling, Gen Z audience |
 | 💬 [WeChat Official Account Manager](marketing/marketing-wechat-official-account.md) | Subscriber engagement, content marketing | WeChat OA strategy, community building, conversion optimization |
+| 📺 [WeChat Channels Strategist](marketing/marketing-wechat-channels-strategist.md) | WeChat Channels (视频号) video and livestream commerce, private-domain cold starts | Growing through WeChat's social graph and converting into OA, community, and Mini Program |
 | 🧠 [Zhihu Strategist](marketing/marketing-zhihu-strategist.md) | Thought leadership, knowledge-driven engagement | Zhihu authority building, Q&A strategy, lead generation |
 | 🇨🇳 [Baidu SEO Specialist](marketing/marketing-baidu-seo-specialist.md) | Baidu optimization, China SEO, ICP compliance | Ranking in Baidu and reaching China's search market |
 | 🎬 [Bilibili Content Strategist](marketing/marketing-bilibili-content-strategist.md) | B站 algorithm, danmaku culture, UP主 growth | Building audiences on Bilibili with community-first content |
@@ -276,6 +287,8 @@ Growing your audience, one authentic interaction at a time.
 | 🎙️ [Global Podcast Strategist](marketing/marketing-global-podcast-strategist.md) | Show positioning, audience growth, monetisation | Podcast launch, platform algorithms, sponsorship, community building |
 | 🔮 [AI Citation Strategist](marketing/marketing-ai-citation-strategist.md) | AEO/GEO, AI recommendation visibility, citation auditing | Improving brand visibility across ChatGPT, Claude, Gemini, Perplexity |
 | 🇨🇳 [China Market Localization Strategist](marketing/marketing-china-market-localization-strategist.md) | Full-stack China market localization, Douyin/Xiaohongshu/WeChat GTM | Turning trend signals into executable China go-to-market strategies |
+| 📍 [Local Life Services Strategist](marketing/marketing-local-life-services-strategist.md) | Meituan/Dianping ranking, group-buy margin math, Douyin Local Life POI content | Driving store visits for brick-and-mortar merchants in China |
+| 🚦 [China Ad Compliance Reviewer](marketing/marketing-china-ad-compliance-reviewer.md) | PRC Advertising Law, forbidden superlatives, category and platform red lines | Pre-flight review of copy and creative before it runs in mainland China |
 | 🎬 [Video Optimization Specialist](marketing/marketing-video-optimization-specialist.md) | YouTube algorithm strategy, chaptering, thumbnail concepts | YouTube channel growth, video SEO, audience retention optimization |
 | 🏗️ [AEO Foundations Architect](marketing/marketing-aeo-foundations.md) | AI Engine Optimization infrastructure | llms.txt, AI-aware robots.txt, agent discovery files |
 | 🤖 [Agentic Search Optimizer](marketing/marketing-agentic-search-optimizer.md) | WebMCP & agentic task completion | Making sites usable by AI browsing agents |
@@ -344,6 +357,7 @@ Defending the stack — from secure-by-design architecture to breach response.
 | 🛡️ [Blockchain Security Auditor](security/security-blockchain-security-auditor.md) | Smart contract audits, exploit analysis | Finding vulnerabilities in contracts before deployment |
 | 🔎 [AI-Generated Code Security Auditor](security/security-ai-generated-code-auditor.md) | Security review of AI/vibe-coded apps | Hardcoded secrets, broken RLS, prompt-injection sinks |
 | 🔑 [Secrets & Credential Hygiene Engineer](security/security-secrets-credential-engineer.md) | Secrets & credential lifecycle | Detection, vaulting, rotation, leak response |
+| 📦 [Software Supply Chain Security Engineer](security/security-software-supply-chain-engineer.md) | CI/CD hardening, dependency pinning, SBOM, SLSA provenance, Sigstore | Securing the path from commit to running artifact |
 
 ### 🛟 Support Division
 
@@ -377,6 +391,7 @@ The unique specialists who don't fit in a box.
 
 | Agent | Specialty | When to Use |
 |-------|-----------|-------------|
+| 🛎️ [Agency Concierge](specialized/specialized-agency-concierge.md) | Request intake, clarifying questions, agent routing, roster gap analysis | You don't know which agent you need — start here to get scoped and dispatched |
 | 🎭 [Agents Orchestrator](specialized/agents-orchestrator.md) | Multi-agent coordination, workflow management | Complex projects requiring multiple agent coordination |
 | 🔍 [LSP/Index Engineer](specialized/lsp-index-engineer.md) | Language Server Protocol, code intelligence | Code intelligence systems, LSP implementation, semantic indexing |
 | 📥 [Sales Data Extraction Agent](specialized/sales-data-extraction-agent.md) | Excel monitoring, sales metric extraction | Sales data ingestion, MTD/YTD/Year End metrics |
@@ -391,6 +406,8 @@ The unique specialists who don't fit in a box.
 | 🗃️ [ZK Steward](specialized/zk-steward.md) | Knowledge management, Zettelkasten, notes | Building connected, validated knowledge bases |
 | 🔌 [MCP Builder](specialized/specialized-mcp-builder.md) | Model Context Protocol servers, AI agent tooling | Building MCP servers that extend AI agent capabilities |
 | 📄 [Document Generator](specialized/specialized-document-generator.md) | PDF, PPTX, DOCX, XLSX generation from code | Professional document creation, reports, data visualization |
+| 🗂️ [Document Metadata Curator](specialized/document-metadata-curator.md) | Records classification, title/date/correspondent resolution, duplicate assessment | Turning incoming files into consistently titled, taxonomy-aligned records |
+| 🗂️ [Office Collaborator](specialized/specialized-office-collaborator.md) | Live COM automation of open Word, Excel, PowerPoint, and WPS documents | Editing a document the user still has open, without closing it or losing edits |
 | ⚙️ [Automation Governance Architect](specialized/automation-governance-architect.md) | Automation governance, n8n, workflow auditing | Evaluating and governing business automations at scale |
 | 📚 [Corporate Training Designer](specialized/corporate-training-designer.md) | Enterprise training, curriculum development | Designing training systems and learning programs |
 | 🌱 [Personal Growth Mentor](specialized/personal-growth-mentor.md) | Goal clarity, habit systems, accountability, life strategy | Cross-domain personal development without motivational fluff |
@@ -403,6 +420,7 @@ The unique specialists who don't fit in a box.
 | ☁️ [Salesforce Architect](specialized/specialized-salesforce-architect.md) | Multi-cloud Salesforce design, governor limits, integrations | Enterprise Salesforce architecture, org strategy, deployment pipelines |
 | 🇫🇷 [French Consulting Market Navigator](specialized/specialized-french-consulting-market.md) | ESN/SI ecosystem, portage salarial, rate positioning | Freelance consulting in the French IT market |
 | 🇰🇷 [Korean Business Navigator](specialized/specialized-korean-business-navigator.md) | Korean business culture, 품의 process, relationship mechanics | Foreign professionals navigating Korean business relationships |
+| 🇮🇳 [India Business Navigator](specialized/specialized-india-business-navigator.md) | Indian business culture, the indirect no, regional variation, 31 March fiscal year | Foreign professionals navigating Indian business relationships |
 | 🏗️ [Civil Engineer](specialized/specialized-civil-engineer.md) | Structural analysis, geotechnical design, global building codes | Multi-standard structural engineering across Eurocode, ACI, AISC, and more |
 | 🎧 [Customer Service](specialized/customer-service.md) | Omnichannel support, complaint handling, retention, escalation | Any industry customer support — retail, SaaS, hospitality, finance, logistics |
 | 🏥 [Healthcare Customer Service](specialized/healthcare-customer-service.md) | HIPAA-aware patient support, billing, insurance, emergency routing | Healthcare organizations needing compliant, empathetic patient support |
@@ -412,6 +430,8 @@ The unique specialists who don't fit in a box.
 | ⏱️ [Legal Billing & Time Tracking](specialized/legal-billing-time-tracking.md) | Time capture, billing narratives, IOLTA compliance, collections | Law firms maximizing revenue recovery and billing accuracy |
 | 📋 [Legal Client Intake](specialized/legal-client-intake.md) | Prospect qualification, conflict screening, consultation scheduling | Law firms converting inquiries into retained clients |
 | ⚖️ [Legal Document Review](specialized/legal-document-review.md) | Contract review, risk flagging, version comparison, compliance | Attorney-ready first-pass review across any practice area |
+| 📜 [Policy Document Generator](specialized/legal-policy-generator.md) | Terms of Service, Privacy, Cookie, and Acceptable Use policies from actual data practices | First drafts of product policies for attorney review |
+| 📜 [Open Source Compliance Lead](specialized/specialized-open-source-compliance-lead.md) | License policy by distribution model, SBOM license gates, REUSE, DCO/CLA | Shipping and contributing to open source without compliance surprises |
 | 🏦 [Loan Officer Assistant](specialized/loan-officer-assistant.md) | Borrower intake, TRID compliance, pipeline tracking, closing coordination | Mortgage and consumer lending teams |
 | 🏠 [Real Estate Buyer & Seller](specialized/real-estate-buyer-seller.md) | Buyer/seller representation, offers, transaction coordination | Residential and investment real estate transactions |
 | 🛒 [Retail Customer Returns](specialized/retail-customer-returns.md) | Return processing, fraud prevention, exchanges, vendor returns | Brick-and-mortar, e-commerce, and omnichannel retail |
@@ -435,6 +455,8 @@ The unique specialists who don't fit in a box.
 | 🧡 [Aging Parent Care Companion](specialized/healthcare-aging-parent-care-companion.md) | Family caregiver decision-support | Appointment/medication coordination, care-team comms, caregiver wellbeing (HIPAA-aligned) |
 | 🏛️ [Master Plan Architect](specialized/specialized-master-plan-architect.md) | Architectural teaching, red-team plan critique | Deep architecture teaching, risk critique, comprehensive Markdown implementation plans (no code execution) |
 | 🎧 [Focus Music Architect](specialized/specialized-focus-music-architect.md) | Instrumental focus-music prompt engineering, neuroacoustics | Soundscape architecture, BPM curves, binaural layers for generative audio models |
+| 🎩 [Solo Founder Operator](specialized/solo-founder-operator.md) | Productized offers, fixed-price scoping, cash-flow discipline, agent delegation map | Running a one-person company leveraged by AI agents |
+| 🧰 [SMB Stack Triage Architect](specialized/specialized-smb-stack-triage-architect.md) | Keep/Bridge/Replace verdicts for CRM, ERP, invoicing, and legacy systems | Deciding what stays, what gets connected, and what gets replaced before automating |
 
 ### 💵 Finance Division
 
@@ -549,6 +571,7 @@ Building AI agents for regulated clinical and sovereign health contexts.
 | 🩺 [Clinical Evidence Agent](healthcare/healthcare-clinical-evidence-agent.md) | Evidence standards, validated vs unvalidated claims, diagnostic authority boundaries | Making clinical claims credibly without overstepping into diagnostic authority |
 | 🌍 [Sovereign Health Systems Agent](healthcare/healthcare-sovereign-health-systems-agent.md) | Government health mandates, UHC policy, emerging market deployment | Health tech teams operating at the intersection of national health infrastructure and sovereign health policy |
 | 🧭 [Healthcare Innovation Strategist](healthcare/healthcare-innovation-strategist.md) | Narrative architecture for healthcare founders across investor, regulatory, sovereign, and clinical audiences | Healthcare founders who need to translate clinical and financial complexity into language that moves capital and builds trust |
+| 🔗 [FHIR Interoperability Engineer](healthcare/healthcare-fhir-interoperability-engineer.md) | HL7 v2-to-FHIR mapping, US Core conformance, SMART on FHIR, Bulk Data $export | Clinical data integration between EHRs, interface engines, and FHIR servers |
 
 ---
 
@@ -559,6 +582,8 @@ Finding, evaluating, and synthesizing existing evidence rather than generating n
 | Agent | Specialty | When to Use |
 |-------|-----------|-------------|
 | 🔍 [Research Synthesist](research/research-synthesist.md) | Literature review, source evaluation, citation tracing, evidence synthesis | Turning a scattered pile of sources into a structured, honestly-weighted map of what the evidence supports |
+| 📡 [AI Signal Curator](research/research-ai-signal-curator.md) | Tiered AI/ML/math source sweeps with provenance-labeled statistics | A short, ranked briefing on what actually changed, with depth on demand |
+| 🔎 [Social Evidence Researcher](research/research-social-evidence-researcher.md) | Cross-platform social research, discovery vs. inspected evidence, claim-to-evidence mapping | Social research whose conclusions can be traced back to inspectable sources |
 
 ---
 
@@ -747,13 +772,15 @@ The Agency works natively with Claude Code, and ships conversion + install scrip
 - **[OpenCode](https://opencode.ai)** — `.md` agent files → `.opencode/agents/`
 - **[Cursor](https://cursor.sh)** — `.mdc` rule files → `.cursor/rules/`
 - **[Aider](https://aider.chat)** — `CONVENTIONS.md` roster index → `./CONVENTIONS.md`
-- **[Windsurf](https://codeium.com/windsurf)** — single `.windsurfrules` → `./.windsurfrules`
+- **[Windsurf](https://codeium.com/windsurf)** — one workspace rule per agent → `.windsurf/rules/`
 - **[OpenClaw](https://github.com/openclaw/openclaw)** — `SOUL.md` + `AGENTS.md` + `IDENTITY.md` per agent
 - **[Qwen Code](https://github.com/QwenLM/qwen-code)** — `.md` SubAgent files → `~/.qwen/agents/`
+- **[ZCode](integrations/zcode/README.md)** — `.md` agent files → `~/.zcode/agents/`
 - **[Kimi Code](https://github.com/MoonshotAI/kimi-cli)** — YAML agent specs → `~/.config/kimi/agents/`
 - **[Codex](https://developers.openai.com/codex/overview)** — TOML custom agents → `~/.codex/agents/`
 - **Osaurus** -- `SKILL.md` skills -> `~/.osaurus/skills/`
 - **[Hermes](integrations/hermes/README.md)** -- lazy-router plugin -> `~/.hermes/plugins/`
+- **[Mistral Vibe](integrations/vibe/README.md)** — `.toml` agents + prompt files → `~/.vibe/agents/` + `~/.vibe/prompts/`
 - **[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)** — `SKILL.md` skills → `~/.dsh/skills/` (user) or `.dsh/skills/` (project)
 
 ---
@@ -783,20 +810,23 @@ The installer scans your system for installed tools, shows a checkbox UI, and le
 
   [x]  1)  [*]  Claude Code     (claude.ai/code)
   [x]  2)  [*]  Copilot         (~/.github + ~/.copilot)
-  [x]  3)  [*]  Antigravity     (~/.gemini/antigravity)
+  [x]  3)  [*]  Antigravity     (~/.gemini/config/skills)
   [ ]  4)  [ ]  Gemini CLI      (~/.gemini/agents)
   [ ]  5)  [ ]  OpenCode        (opencode.ai)
   [ ]  6)  [ ]  OpenClaw        (~/.openclaw/agency-agents)
   [x]  7)  [*]  Cursor          (.cursor/rules)
   [ ]  8)  [ ]  Aider           (CONVENTIONS.md)
-  [ ]  9)  [ ]  Windsurf        (.windsurfrules)
+  [ ]  9)  [ ]  Windsurf        (.windsurf/rules)
   [ ] 10)  [ ]  Qwen Code       (~/.qwen/agents)
-  [ ] 11)  [ ]  Kimi Code       (~/.config/kimi/agents)
-  [ ] 12)  [ ]  Codex           (~/.codex/agents)
-  [ ] 13)  [ ]  Osaurus         (~/.osaurus/skills)
-  [ ] 14)  [ ]  Hermes          (~/.hermes/plugins)
+  [ ] 11)  [ ]  ZCode           (~/.zcode/agents)
+  [ ] 12)  [ ]  Kimi Code       (~/.config/kimi/agents)
+  [ ] 13)  [ ]  Codex           (~/.codex/agents)
+  [ ] 14)  [ ]  Osaurus         (~/.osaurus/skills)
+  [ ] 15)  [ ]  Hermes          (~/.hermes/plugins)
+  [ ] 16)  [ ]  Mistral Vibe    (~/.vibe/agents)
+  [ ] 17)  [ ]  DeepSeek Harness  (~/.dsh/skills)
 
-  [1-14] toggle   [a] all   [n] none   [d] detected
+  [1-17] toggle   [a] all   [n] none   [d] detected
   [Enter] install   [q] quit
 ```
 
@@ -966,17 +996,29 @@ See [integrations/aider/README.md](integrations/aider/README.md) for details.
 <details>
 <summary><strong>Windsurf</strong></summary>
 
-All agents are compiled into `.windsurfrules` in your project root.
+Each agent becomes one workspace rule in `.windsurf/rules/` in your project root.
 
 ```bash
 cd /your/project
 /path/to/agency-agents/scripts/install.sh --tool windsurf
 ```
 
+Windsurf caps a rule file at 12,000 characters, so the roster cannot live in one
+file. Rules use `trigger: model_decision`: only each agent's description sits in
+Cascade's system prompt, and Cascade opens the full rule when it looks relevant.
+Installing all 279 puts 279 descriptions there, so most projects want a subset:
+
+```bash
+./scripts/install.sh --tool windsurf --division engineering,testing
+```
+
 Reference agents in Windsurf's Cascade:
 ```
 Use the Reality Checker agent to verify this is production ready.
 ```
+
+If you installed before this layout, delete the old `.windsurfrules` from your
+project root.
 
 See [integrations/windsurf/README.md](integrations/windsurf/README.md) for details.
 </details>
@@ -1060,6 +1102,18 @@ Then reference the custom agent by name in Codex:
 Use the Frontend Developer agent to review this component.
 ```
 
+In the Codex GUI, you can mention an agent with `@<agent name>`:
+```
+Use @Frontend Developer to review this component.
+```
+
+You can also mention multiple agents in one prompt:
+```
+@Product Manager evaluate the current product maturity.
+@UI Designer audit whether the current mini program design is appropriate.
+@WeChat Mini Program Developer check whether the current mini program follows development standards.
+```
+
 See [integrations/codex/README.md](integrations/codex/README.md) for details.
 </details>
 
@@ -1126,12 +1180,13 @@ Community-maintained translations and regional adaptations. These are independen
 |----------|-----------|------|-------|
 | 🇨🇳 简体中文 (zh-CN) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-zh](https://github.com/jnMetaCode/agency-agents-zh) | 141 translated agents + 46 China-market originals |
 | 🇨🇳 简体中文 (zh-CN) | [@dsclca12](https://github.com/dsclca12) | [agent-teams](https://github.com/dsclca12/agent-teams) | Independent translation with Bilibili, WeChat, Xiaohongshu localization |
+| 🇹🇼 繁體中文 (zh-Hant) | [@kaihuang1425](https://github.com/kaihuang1425) | [agency-agents-zh-hant](https://github.com/kaihuang1425/agency-agents-zh-hant) | 20 agents: 14 upstream adaptations + 6 original agents for Taiwan/Traditional Chinese use cases |
 | 🇧🇷 Português brasileiro (pt-BR) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-pt-BR](https://github.com/jnMetaCode/agency-agents-pt-BR) | 184 upstream agents translated; Brazil-market PRs welcome |
 | 🇷🇺 Русский (ru) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-ru](https://github.com/jnMetaCode/agency-agents-ru) | 184 upstream agents translated; Russia-market PRs welcome |
 | 🇮🇩 Bahasa Indonesia (id) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-id](https://github.com/jnMetaCode/agency-agents-id) | 184 upstream agents translated; Indonesia-market PRs welcome |
 | 🇸🇦 العربية (ar) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-ar](https://github.com/jnMetaCode/agency-agents-ar) | 184 upstream agents translated; Arabic-market PRs welcome |
 | 🇰🇷 한국어 (ko) | [@jnMetaCode](https://github.com/jnMetaCode) | [agency-agents-ko](https://github.com/jnMetaCode/agency-agents-ko) | 184 upstream agents fully translated; Korea-specific PRs welcome |
-| 🇯🇵 日本語 (ja-JP) | [@sscodeai](https://github.com/sscodeai) | [agency-agents-ja](https://github.com/sscodeai/agency-agents-ja) | 281 Japan-localized agents + 97 Japan-market originals + 27 workflows |
+| 🇯🇵 日本語 (ja-JP) | [@sscodeai](https://github.com/sscodeai) | [agency-agents-ja](https://github.com/sscodeai/agency-agents-ja) | 270 Japan-localized upstream agents + 115 Japan-market originals + 27 workflows |
 | 🇻🇳 Tiếng Việt (vi-VN) | [@rodonguyen](https://github.com/rodonguyen) | [agency-agents](https://github.com/rodonguyen/agency-agents) | Starter Vietnamese localization focused on README, quick start, and high-use docs |
 
 Want to add a translation? Open an issue and we'll link it here.

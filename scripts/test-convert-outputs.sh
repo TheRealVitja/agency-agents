@@ -22,7 +22,7 @@
 #   scripts/convert-outputs.sha256 (v2) holds
 #     agent  <slug>  <hash>   one line per roster agent: that agent's generated output
 #                             across every tool (its files, its section of the
-#                             accumulated aider/windsurf files, its hermes JSON entry)
+#                             section of the accumulated aider file, its hermes JSON entry)
 #     tool   <tool>  <hash>   the tool's NON-agent files (README, plugin code, manifests):
 #                             moves only when a generator/template changes
 #     contract <file> <hash>  divisions.json, tools.json, runbooks.json
@@ -136,7 +136,7 @@ def check(cond, msg): (ok if cond else bad)(msg)
 #   yaml-id   YAML carrying only an identifier      id == slug + companion file
 #             (kimi: agent.name -> <slug>/system.md)
 #   accum     one file for all agents: "## Name" then the description line
-#             (windsurf: bare line; aider: "> " blockquote)  round-trip both
+#             (aider: "> " blockquote)  round-trip both
 #   plain     no structured metadata                count only
 #   json      hermes agents.json                    count
 SPEC = {
@@ -153,15 +153,22 @@ SPEC = {
     "kimi":        ("*/agent.yaml",      "yaml-id"),
     "openclaw":    ("*/SOUL.md",         "plain"),
     "aider":       ("CONVENTIONS.md",    "accum"),
-    "windsurf":    (".windsurfrules",    "accum"),
+    "windsurf":    ("rules/*.md",        "yaml-fm"),
     "hermes":      ("agency-agents-router/data/agents.json", "json"),
 }
 
-def slug_of(path):
+# Tools that name each agent's directory agency-<slug>. Everywhere else the
+# directory is the slug itself, and a slug may start with "agency-" too
+# (agency-concierge), so the prefix is only stripped for these.
+PREFIXED = {t for t, (pat, _fmt) in SPEC.items() if pat.startswith("agency-")}
+
+def unprefix(tool, d):
+    return d[len("agency-"):] if tool in PREFIXED and d.startswith("agency-") else d
+
+def slug_of(tool, path):
     base = os.path.basename(path)
     if base in ("SKILL.md", "agent.yaml", "SOUL.md", "system.md", "AGENTS.md", "IDENTITY.md"):
-        d = os.path.basename(os.path.dirname(path))
-        return d[len("agency-"):] if d.startswith("agency-") else d
+        return unprefix(tool, os.path.basename(os.path.dirname(path)))
     return os.path.splitext(base)[0]
 
 def find_desc(obj):
@@ -258,7 +265,7 @@ for tool in TOOLS:
 
     bad_parse = bad_trip = 0
     for f in files:
-        slug = slug_of(f)
+        slug = slug_of(tool, f)
         if slug not in src:
             bad(f"{tool}: {os.path.relpath(f, OUT)} has no roster source for slug '{slug}'"); continue
         try:
@@ -330,7 +337,14 @@ elif not colour_bad:
 # block in half and leaves each file holding a dangling fence, which renders as
 # broken markdown for every user of that integration (#849). So every fenced
 # block in a source must land intact in exactly one of the two files.
-SPLIT_FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
+#
+# This model must read fences exactly as lib.sh's fence_open_p / fence_closes_p
+# do (and as GitHub renders): up to three spaces of indentation, same character,
+# a closer at least as long as the opener with nothing but whitespace after it.
+# Reading fences at column 0 only missed an indented opener and paired its
+# column-0 closer with the following lines, reporting a tear the converter had
+# not made.
+OPEN_FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})")
 
 def body_lines(text):
     """Mirror lib.sh's get_body, including `$(...)`'s trailing-newline strip."""
@@ -346,13 +360,17 @@ def body_lines(text):
     return out
 
 def fence_blocks(lines):
-    """Inclusive (opener, closer) index pairs; closer = last line if unterminated."""
+    """Inclusive (opener, closer) index pairs; closer = last line if unterminated.
+
+    Mirrors lib.sh fence_open_p / fence_closes_p so the eval sees the same
+    blocks the converter does.
+    """
     res, marker, mlen, start = [], "", 0, None
     for i, line in enumerate(lines):
-        m = SPLIT_FENCE.match(line)
+        m = OPEN_FENCE.match(line)
         if not m:
             continue
-        tok, rest = m.group(1), m.group(2)
+        tok, rest = m.group(2), line[m.end():]
         if not marker:
             marker, mlen, start = tok[0], len(tok), i
         elif tok[0] == marker and len(tok) >= mlen and not rest.strip():
@@ -413,6 +431,70 @@ if os.path.isfile(aider_index):
             bad(f"aider: ...and {len(dangling)-3} more dangling paths")
     elif len(text) <= AIDER_INDEX_CEILING:
         ok(f"aider: index is {len(text):,} characters and all {N} agent paths resolve")
+# --- Layer A (rule limit): a Windsurf rule Windsurf will not read is not a rule
+# Windsurf caps a workspace rule file at 12,000 characters and drops the rest.
+# That is why this integration stopped writing one .windsurfrules holding the
+# whole roster: at 279 agents it was 3.9 million characters and Cascade read
+# the first few thousand. Each rule now has to fit on its own, end on a clean
+# break, and say so when the agent was too long to carry whole.
+WINDSURF_LIMIT = 12000
+
+def fence_left_open(lines):
+    """True if the text stops while a fenced block is still open.
+
+    CommonMark rules, walked to the end of the text: 3+ backticks or tildes
+    behind at most three spaces open a block, and only a bare run of the same
+    character, at least as long, closes it. Counting fence lines for parity is
+    not enough, and neither is treating any fence-looking line as a closer: an
+    agent that shows a ```python example inside a ````markdown template has
+    fence lines that are content.
+    """
+    marker, mlen = "", 0
+    for line in lines:
+        m = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if not m:
+            continue
+        tok, rest = m.group(1), m.group(2)
+        if not marker:
+            if tok[0] == "`" and "`" in rest:
+                continue          # not a fence: a backtick info string can't hold `
+            marker, mlen = tok[0], len(tok)
+        elif tok[0] == marker and len(tok) >= mlen and not rest.strip():
+            marker, mlen = "", 0
+    return bool(marker)
+
+ws_over = ws_fence = ws_trigger = 0
+ws_trimmed = 0
+ws_files = sorted(glob.glob(os.path.join(OUT, "windsurf", "rules", "*.md")))
+for f in ws_files:
+    text = open(f, encoding="utf-8").read()
+    slug = os.path.splitext(os.path.basename(f))[0]
+    if len(text) > WINDSURF_LIMIT:
+        ws_over += 1
+        if ws_over <= 3:
+            bad(f"windsurf: {slug} is {len(text)} characters — Windsurf reads the "
+                f"first {WINDSURF_LIMIT} and drops the rest")
+    try:
+        if frontmatter(text).get("trigger") != "model_decision":
+            ws_trigger += 1
+            bad(f"windsurf: {slug} is missing trigger: model_decision — "
+                f"Cascade would never load it on its own")
+    except Exception:
+        pass   # the strict-parse pass above already reported this
+    # Only a trimmed rule is checked: an untrimmed one is the source body
+    # verbatim, and a fence the source itself leaves open is a source bug.
+    trimmed = "Trimmed to fit Windsurf" in text
+    if trimmed and fence_left_open(text.split("\n")):
+        ws_fence += 1
+        if ws_fence <= 3:
+            bad(f"windsurf: {slug} ends inside an unclosed code fence — the trim "
+                f"cut through a fenced block")
+    if trimmed:
+        ws_trimmed += 1
+if ws_files and not (ws_over or ws_fence or ws_trigger):
+    ok(f"windsurf: all {len(ws_files)} rules fit the {WINDSURF_LIMIT}-character limit, "
+       f"carry trigger: model_decision, and every trimmed rule closes its fences "
+       f"({ws_trimmed} trimmed with a pointer to the full agent)")
 
 # --- Layer A (tool names): Qwen only grants tools it can name ---------------
 # A Qwen subagent's `tools:` is an allow-list resolved against Qwen's registry
@@ -469,9 +551,9 @@ per_tool  = {t: [] for t in TOOLS}           # tool -> [(label, bytes)] for non-
 
 def owner_of(path):
     """Which roster agent a generated file belongs to, by exact path component or stem."""
-    parts = rel(path).split("/")[1:]         # drop the tool dir
+    tool, *parts = rel(path).split("/")      # drop the tool dir
     for comp in parts[:-1]:
-        d = comp[len("agency-"):] if comp.startswith("agency-") else comp
+        d = unprefix(tool, comp)
         if d in slugs: return d
     stem = os.path.splitext(parts[-1])[0]
     return stem if stem in slugs else None

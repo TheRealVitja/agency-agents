@@ -41,8 +41,8 @@ output="$($INSTALLER --tool claude-code --agent 'Developer Tooling Engineer' --d
   exit 1
 }
 
-# The file stem is the id strategy/runbooks.json uses, and for most agents it is
-# not the install slug (engineering-frontend-developer vs frontend-developer).
+# A file stem still selects its agent, and for most agents it is not the
+# install slug (engineering-frontend-developer vs frontend-developer).
 output="$("$INSTALLER" --tool claude-code --agent engineering-frontend-developer --dry-run 2>&1)"
 [[ "$output" == *"Agents:  1"* ]] || {
   printf 'File-stem selection did not resolve to one agent:\n%s\n' "$output" >&2

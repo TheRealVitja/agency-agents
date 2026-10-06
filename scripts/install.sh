@@ -19,7 +19,7 @@
 #   opencode     -- Copy agents to .opencode/agents/ in current directory
 #   cursor       -- Copy rules to .cursor/rules/ in current directory
 #   aider        -- Copy the CONVENTIONS.md roster index to current directory
-#   windsurf     -- Copy .windsurfrules to current directory
+#   windsurf     -- Copy rules to .windsurf/rules/ in current directory
 #   openclaw     -- Copy workspaces to ~/.openclaw/agency-agents/
 #   qwen         -- Copy SubAgents to ~/.qwen/agents/ (user-wide) or .qwen/agents/ (project)
 #   zcode        -- Copy agents to ~/.zcode/agents/ (global) or .zcode/agents/ (project)
@@ -54,12 +54,16 @@
 # Env: CLAUDE_CONFIG_DIR, COPILOT_AGENT_DIR, CURSOR_RULES_DIR, GEMINI_AGENTS_DIR,
 #      OPENCODE_AGENTS_DIR, OPENCLAW_DIR, QWEN_AGENTS_DIR, ZCODE_AGENTS_DIR,
 #      CODEX_AGENTS_DIR, OSAURUS_SKILLS_DIR, HERMES_HOME, HERMES_PLUGIN_DIR,
-#      VIBE_HOME, DSH_HOME, DSH_SKILLS_DIR
+#      VIBE_HOME, DSH_HOME, DSH_SKILLS_DIR,
+#      WINDSURF_RULES_DIR
 #      override default install paths (checked before hardcoded defaults).
 #
-# --- USAGE-END ---  (sentinel for usage(); do not remove)
 # Platform support:
-#   Linux, macOS (requires bash 3.2+), Windows Git Bash / WSL
+#   Linux, macOS (requires bash 3.2+), Windows Git Bash / WSL.
+#   There is no PowerShell port — on Windows run this from Git Bash or WSL,
+#   or use the desktop app: https://agencyagents.app
+#
+# --- USAGE-END ---  (sentinel for usage(); do not remove)
 
 set -euo pipefail
 
@@ -285,16 +289,20 @@ selected_agent_count_all() {
   local d n=0; for d in "${ALL_DIVISIONS[@]}"; do incr_by n "$(division_count "$d")"; done; echo "$n"
 }
 
-# worker_flags — re-emit the active selection/mode flags for parallel workers.
-worker_flags() {
-  local out="" d a
-  $USE_LINK && out="$out --link"
-  $AUTO_CONVERT || out="$out --no-convert"
-  [[ -n "$OVERRIDE_PATH" ]] && out="$out --path $OVERRIDE_PATH"
-  for d in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do out="$out --division $d"; done
-  for a in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do out="$out --agent $a"; done
-  [[ -n "$AGENTS_FILE" ]] && out="$out --agents-file $AGENTS_FILE"
-  printf '%s' "$out"
+# write_worker_args <file> — serialize selection/mode flags for parallel workers.
+# NUL delimiters preserve whitespace and glob characters without asking a child
+# shell to split a command-shaped string back into arguments.
+write_worker_args() {
+  local file="$1" d a
+  local args=()
+  $USE_LINK && args+=(--link)
+  $AUTO_CONVERT || args+=(--no-convert)
+  [[ -n "$OVERRIDE_PATH" ]] && args+=(--path "$OVERRIDE_PATH")
+  for d in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do args+=(--division "$d"); done
+  for a in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do args+=(--agent "$a"); done
+  [[ -n "$AGENTS_FILE" ]] && args+=(--agents-file "$AGENTS_FILE")
+  : > "$file"
+  ((${#args[@]} == 0)) || printf '%s\0' "${args[@]}" > "$file"
 }
 
 # validate_division <name> — exit on unknown division.
@@ -351,13 +359,13 @@ install_file() {
 # claude-code and copilot copy the source file under its own name. For most
 # agents that is <division>-<slug>.md, but 73 of 279 are named <slug>.md
 # already (all of game-development/, most of specialized/), and for those the
-# name is exactly what gemini-cli, opencode, qwen and zcode write. Measuring
+# name is exactly what gemini-cli, opencode, qwen, zcode and windsurf write. Measuring
 # with one engineering agent missed that, so `--tool claude-code,qwen --path X`
 # reported both installs OK while qwen overwrote the Claude Code file. One
 # group, because a full install collides on 73 files, not zero.
 path_collision_group() {
   case "$1" in
-    claude-code|copilot|gemini-cli|opencode|qwen|zcode)
+    claude-code|copilot|gemini-cli|opencode|qwen|zcode|windsurf)
                                      printf 'agent-md' ;;       # <slug>.md, or the source's name
     antigravity|osaurus|dsh)         printf 'agency-skill' ;;   # agency-<slug>/SKILL.md
     *)                               printf '' ;;
@@ -399,6 +407,7 @@ resolve_dest() {
     hermes)      var="HERMES_PLUGIN_DIR" ;;
     vibe)        var="VIBE_HOME" ;;
     dsh)         var="DSH_SKILLS_DIR" ;;
+    windsurf)    var="WINDSURF_RULES_DIR" ;;
   esac
   if [[ -n "$var" && -n "${!var:-}" ]]; then
     if [[ "$tool" == "claude-code" ]]; then
@@ -438,6 +447,10 @@ ensure_converted() {
   $AUTO_CONVERT || return 0
   case "$tool" in claude-code|copilot) return 0 ;; esac
   local d="$INTEGRATIONS/$tool"
+  # Windsurf output moved from one .windsurfrules to rules/<slug>.md. A
+  # .windsurfrules left by an older convert.sh is not something this installer
+  # can use, so only the rules directory counts (convert.sh removes the old file).
+  [[ "$tool" == windsurf ]] && d="$INTEGRATIONS/windsurf/rules"
   # Every integrations/<tool>/ ships a committed README.md, so "any file
   # present" mistook the README for generated output and never converted in a
   # fresh checkout (the installer then hard-failed "<tool> missing"). Only files
@@ -581,7 +594,7 @@ tool_label() {
     openclaw)    printf "%-14s  %s" "OpenClaw"     "(~/.openclaw/agency-agents)" ;;
     cursor)      printf "%-14s  %s" "Cursor"       "(.cursor/rules)"         ;;
     aider)       printf "%-14s  %s" "Aider"        "(CONVENTIONS.md)"        ;;
-    windsurf)    printf "%-14s  %s" "Windsurf"     "(.windsurfrules)"        ;;
+    windsurf)    printf "%-14s  %s" "Windsurf"     "(.windsurf/rules)"       ;;
     qwen)        printf "%-14s  %s" "Qwen Code"    "(~/.qwen/agents)"        ;;
     zcode)       printf "%-14s  %s" "ZCode"        "(~/.zcode/agents)" ;;
     kimi)        printf "%-14s  %s" "Kimi Code"    "(~/.config/kimi/agents)" ;;
@@ -1025,8 +1038,18 @@ install_openclaw() {
     install_file "$d/AGENTS.md" "$dest/$name/AGENTS.md"
     install_file "$d/IDENTITY.md" "$dest/$name/IDENTITY.md"
     if command -v openclaw >/dev/null 2>&1; then
+      # `openclaw agents add --workspace` points the agent's agentDir at
+      # ~/.openclaw/agents/<name>/agent/ but never creates it, so the first
+      # sub-agent spawn fails with "agentDir does not exist". Seed it with the
+      # same three files -- also for agents an earlier install registered --
+      # and pass it explicitly when registering.
+      local agent_dir="${HOME}/.openclaw/agents/$name/agent"
+      mkdir -p "$agent_dir"
+      install_file "$d/SOUL.md" "$agent_dir/SOUL.md"
+      install_file "$d/AGENTS.md" "$agent_dir/AGENTS.md"
+      install_file "$d/IDENTITY.md" "$agent_dir/IDENTITY.md"
       if [[ "$existing_agents" != *$'\n'"$name"$'\n'* ]]; then
-        if ! openclaw agents add "$name" --workspace "$dest/$name" --non-interactive; then
+        if ! openclaw agents add "$name" --workspace "$dest/$name" --agent-dir "$agent_dir" --non-interactive; then
           err "OpenClaw: failed to register '$name'; the copied workspace is not active."
           # Keep registering the rest: one bad registration must not cost the others.
           failed_names="${failed_names:+$failed_names }$name"
@@ -1078,12 +1101,21 @@ install_aider() {
     # holding the pre-index roster (3.8M characters, far past what aider can keep
     # in context for a session) re-ran the installer, read "already exists", and
     # kept the broken file. Our generated file has always opened with the same
-    # marker, so tell our stale copy apart from someone else's conventions.
-    if head -n 1 "$dest" | grep -q 'The Agency'; then
-      local bytes; bytes="$(wc -c < "$dest" | tr -d ' ')"
-      warn "Aider: $dest is an Agency roster index from an earlier install ($bytes bytes)."
-      dim  "       The roster is an index now, not the agents themselves. Delete it and"
-      dim  "       re-run this installer to pick up the smaller file."
+    # marker, so tell our stale copy apart from someone else's conventions. The
+    # index and the old roster share that marker; only the index has
+    # "Full instructions:" lines, so that is what separates the two.
+    if cmp -s "$src" "$dest"; then
+      ok "Aider: $dest is already the current roster index."
+    elif head -n 1 "$dest" | grep -q 'The Agency'; then
+      if grep -q '^Full instructions: ' "$dest"; then
+        warn "Aider: $dest is an Agency roster index from an earlier install."
+        dim  "       Delete it and re-run this installer to pick up the current roster."
+      else
+        local bytes; bytes="$(wc -c < "$dest" | tr -d ' ')"
+        warn "Aider: $dest is the full Agency roster from an earlier install ($bytes bytes)."
+        dim  "       The roster is an index now, not the agents themselves. Delete it and"
+        dim  "       re-run this installer to pick up the smaller file."
+      fi
     else
       warn "Aider: CONVENTIONS.md already exists at $dest — leaving your file alone."
       dim  "       Remove it and re-run to install the Agency roster index instead."
@@ -1099,18 +1131,25 @@ install_aider() {
 }
 
 install_windsurf() {
-  local src="$INTEGRATIONS/windsurf/.windsurfrules"
-  local dest_dir; dest_dir="$(resolve_dest windsurf "$PWD")"
-  local dest="$dest_dir/.windsurfrules"
-  [[ -f "$src" ]] || { err "integrations/windsurf/.windsurfrules missing. Run convert.sh first."; return 1; }
-  mkdir -p "$dest_dir"
-  if [[ -f "$dest" ]]; then
-    warn "Windsurf: .windsurfrules already exists at $dest (remove to reinstall)."
-    return 0
+  local src="$INTEGRATIONS/windsurf/rules"
+  local dest; dest="$(resolve_dest windsurf "${PWD}/.windsurf/rules")"
+  local count=0
+  [[ -d "$src" ]] || { err "integrations/windsurf/rules missing. Run convert.sh first."; return 1; }
+  mkdir -p "$dest"
+  local f
+  while IFS= read -r -d '' f; do
+    slug_allowed "$(basename "$f" .md)" || continue
+    install_file "$f" "$dest/"
+    incr count
+  done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
+  ok "Windsurf: $count rules -> $dest"
+  # Anyone who installed before the per-agent layout has a 3.9 MB .windsurfrules
+  # sitting in this directory. Windsurf still reads it, and it still overflows
+  # the limit, so say so rather than leaving both in place.
+  if [[ -f "${PWD}/.windsurfrules" ]]; then
+    warn "Windsurf: a .windsurfrules from an older install is still in $PWD."
+    dim  "         Windsurf caps that file at 6,000 characters — delete it; these rules replace it."
   fi
-  install_file "$src" "$dest"
-  ok "Windsurf: installed -> $dest"
-  $SELECTION_ACTIVE && warn "Windsurf: single-file format — team/agent filtering N/A (installs the full roster)."
   warn "Windsurf: project-scoped. Run from your project root to install there."
 }
 
@@ -1328,6 +1367,16 @@ if has_enabled and not enabled_empty and not inline_flow:
             item_indent = lines[idx][: len(lines[idx]) - len(stripped)]
             break
 
+# A trailing YAML comment is not part of an item's value: "#" starts a comment
+# only after whitespace, so strip it before matching. The earlier raw compare
+# missed an existing entry that carried a comment (adding a duplicate) and let
+# a comment containing " - " trip the corrupted-glue repair below.
+def strip_comment(text):
+    return re.sub(r"\s+#.*$", "", text).strip()
+
+def item_value(text):
+    return strip_comment(text).strip("\"'")
+
 # Detect "already enabled" + corrupted-scalar form (glued "- " from old 2-space bug); repair splits to one per line.
 corrupted_lines = []
 has_plugin_already = False
@@ -1339,13 +1388,11 @@ elif has_enabled and not enabled_empty:
         stripped = l.strip()
         if not stripped.startswith("-"):
             continue
-        # >1 "- " in stripped line = corrupted glue (strict match won't work: names contain dashes).
-        if stripped.count("- ") > 1:
+        # Any "- " inside the comment-stripped value = corrupted glue (strict match won't work: names contain dashes).
+        if strip_comment(stripped[1:]).count("- ") > 0:
             corrupted_lines.append(idx)
-        else:
-            value = stripped[1:].strip().strip("\"'")
-            if value == plugin_strip:
-                has_plugin_already = True
+        elif item_value(stripped[1:]) == plugin_strip:
+            has_plugin_already = True
 
 # Repair in reverse to keep indices. Splice grows the block — sync enabled_end with end_line or the stale sweep eats the new plugin (#879).
 for idx in sorted(corrupted_lines, reverse=True):
@@ -1353,7 +1400,7 @@ for idx in sorted(corrupted_lines, reverse=True):
     stripped = l.strip()
     if not item_indent:
         item_indent = l[: len(l) - len(stripped)] or (enabled_indent + "  ")
-    content = stripped[1:].strip()
+    content = strip_comment(stripped[1:])
     parts = re.split(r"\s+-\s+", content)
     new_lines = [f"{item_indent}- {parts[0]}"]
     for p in parts[1:]:
@@ -1364,7 +1411,8 @@ for idx in sorted(corrupted_lines, reverse=True):
     # Re-check presence after rewrite.
     has_plugin_already = False
     for nl in lines[enabled_idx + 1 : enabled_end]:
-        if nl.strip().startswith("-") and nl[len(item_indent) :].strip() == f"- {plugin_strip}":
+        ns = nl.strip()
+        if ns.startswith("-") and item_value(ns[1:]) == plugin_strip:
             has_plugin_already = True
             break
 
@@ -1382,8 +1430,7 @@ if plugin_start is not None:
         for idx in rng:
             stripped = lines[idx].strip()
             if stripped.startswith("-"):
-                value = stripped[1:].strip().strip("\"'")
-                if value == plugin_strip:
+                if item_value(stripped[1:]) == plugin_strip:
                     stale.append(idx)
     for idx in sorted(stale, reverse=True):
         del lines[idx]
@@ -1570,6 +1617,21 @@ main() {
   local parallel_jobs
   parallel_jobs="$(parallel_jobs_default)"
 
+  # Parallel workers receive the parent's selection state through a NUL-delimited
+  # file. Append those values as real argv entries before normal option parsing.
+  if [[ "${AGENCY_INSTALL_WORKER:-}" == "1" && -n "${AGENCY_INSTALL_WORKER_STATE:-}" ]]; then
+    [[ -f "$AGENCY_INSTALL_WORKER_STATE" ]] || {
+      err "Parallel worker state not found: $AGENCY_INSTALL_WORKER_STATE"
+      exit 1
+    }
+    local _worker_arg
+    local _worker_args=()
+    while IFS= read -r -d '' _worker_arg; do
+      _worker_args+=("$_worker_arg")
+    done < "$AGENCY_INSTALL_WORKER_STATE"
+    set -- "$@" ${_worker_args[@]+"${_worker_args[@]}"}
+  fi
+
   local list_what=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1728,10 +1790,12 @@ main() {
   if $use_parallel; then
     local install_out_dir install_status=0
     install_out_dir="$(mktemp -d)"
+    local worker_state_file="$install_out_dir/worker-args"
+    write_worker_args "$worker_state_file"
     export AGENCY_INSTALL_OUT_DIR="$install_out_dir"
     export AGENCY_INSTALL_SCRIPT="$SCRIPT_DIR/install.sh"
-    export AGENCY_INSTALL_EXTRA="$(worker_flags)"
-    printf '%s\n' "${SELECTED_TOOLS[@]}" | xargs -P "$parallel_jobs" -I {} sh -c 'AGENCY_INSTALL_WORKER=1 "$AGENCY_INSTALL_SCRIPT" --tool "{}" --no-interactive $AGENCY_INSTALL_EXTRA > "$AGENCY_INSTALL_OUT_DIR/{}" 2>&1' || install_status=$?
+    export AGENCY_INSTALL_WORKER_STATE="$worker_state_file"
+    printf '%s\0' "${SELECTED_TOOLS[@]}" | xargs -0 -P "$parallel_jobs" -I {} sh -c 'AGENCY_INSTALL_WORKER=1 "$AGENCY_INSTALL_SCRIPT" --tool "$1" --no-interactive > "$AGENCY_INSTALL_OUT_DIR/$1" 2>&1' agency-install-worker "{}" || install_status=$?
     for t in "${SELECTED_TOOLS[@]}"; do
       [[ -f "$install_out_dir/$t" ]] && cat "$install_out_dir/$t"
     done

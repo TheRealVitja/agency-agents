@@ -32,7 +32,7 @@ if [[ "$1 $2 $3" == 'agents list --json' ]]; then
     printf '[]\n'
   fi
 elif [[ "$1 $2" == 'agents add' ]]; then
-  printf 'add called\n' >> "$OPENCLAW_TEST_LOG"
+  printf '%s\n' "$*" >> "$OPENCLAW_TEST_LOG"
   exit 47
 else
   exit 1
@@ -50,6 +50,13 @@ bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
   echo 'FAIL: compact JSON existing agent was registered again' >&2
   exit 1
 }
+agent_dir="$HOME/.openclaw/agents/example-agent/agent"
+for f in SOUL.md AGENTS.md IDENTITY.md; do
+  [[ -f "$agent_dir/$f" ]] || {
+    echo "FAIL: agentDir of an already registered agent is missing $f" >&2
+    exit 1
+  }
+done
 
 export OPENCLAW_TEST_MODE=missing
 if bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
@@ -58,6 +65,10 @@ if bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent
   exit 1
 fi
 grep -q 'failed to register' "$scratch/missing.log"
+grep -qF -- "--agent-dir $agent_dir" "$OPENCLAW_TEST_LOG" || {
+  echo 'FAIL: registration did not pass the seeded agentDir' >&2
+  exit 1
+}
 
 rm -f "$OPENCLAW_TEST_LOG"
 export OPENCLAW_TEST_MODE=list-fail
@@ -68,4 +79,4 @@ if bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent
 fi
 grep -q 'could not list registered agents' "$scratch/list-fail.log"
 [[ ! -e "$OPENCLAW_TEST_LOG" ]]
-echo 'PASS: OpenClaw existing-agent detection and registration failure reporting'
+echo 'PASS: OpenClaw existing-agent detection, agentDir seeding and registration failure reporting'
