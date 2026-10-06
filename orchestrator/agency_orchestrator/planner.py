@@ -26,6 +26,7 @@ from .routing import Rules
 from .workflow import Step, Workflow
 
 AFFECTED_MARK = "AFFECTED: component:{name};"
+SPECIALIST_MARK = "SPECIALIST: {tag} for component:{name};"
 
 # Commands a step may run for its component's stack. Headless agents cannot
 # ask for permission, so these are pre-approved; anything that installs
@@ -216,6 +217,9 @@ def plan(task: str, project: Project, rules: Rules, roster: Roster, options: Pla
     name_of = lambda slug: (roster.get(slug).name if roster.get(slug) else slug)  # noqa: E731
 
     topo = sorted(comps, key=lambda c: (len(_closure(after, c.name)), rules.layer_rank(c), c.name))
+    # Specialists the task's wording calls for, per component — minus the
+    # ones that already own the component (no agent goes before itself).
+    concerns = {c.name: [(t, a, kw) for t, a, kw in rules.concerns(c, task) if a != owner[c.name]] for c in topo}
     overview = "\n".join(_component_line(project, c, name_of(owner[c.name])) for c in topo)
     steps: list[Step] = []
 
@@ -223,6 +227,8 @@ def plan(task: str, project: Project, rules: Rules, roster: Roster, options: Pla
     if use_lead:
         lead_id = "brief"
         marks = "\n".join(AFFECTED_MARK.format(name=c.name) for c in topo)
+        specialist_marks = "\n".join(SPECIALIST_MARK.format(tag=t, name=c.name)
+                                      for c in topo for t, _a, _kw in concerns[c.name])
         steps.append(Step(
             id=lead_id, agent=rules.lead(), mode="read", output="brief",
             task=(
@@ -239,6 +245,10 @@ def plan(task: str, project: Project, rules: Rules, roster: Roster, options: Pla
                 "3. Risks, and how to verify the change.\n\n"
                 "Finish with one line per component that has to change, copied exactly from this list "
                 "(leave out the ones that need no change):\n" + marks
+                + ("\n\nSome components have a specialist for part of this task, who would work on the "
+                   "component before its owner. Add the line for each one that is really needed, copied "
+                   "exactly (leave out the rest — the owner then handles that part alone):\n" + specialist_marks
+                   if specialist_marks else "")
             ),
         ))
 
@@ -261,11 +271,15 @@ def plan(task: str, project: Project, rules: Rules, roster: Roster, options: Pla
             context_lines.append(f"What the agent on {u} ({relation}) reported:\n{{{{{_var('impl', u)}}}}}")
 
         concern_ids = []
-        for tag, agent, kw in rules.concerns(c, task):
+        for tag, agent, kw in concerns[c.name]:
             sid = _step_id(tag, c.name)
+            # With a brief, the architect decides per component whether the
+            # specialist is needed; without one, the task's wording does.
+            spec_condition = (f"{{{{brief}}}} contains {SPECIALIST_MARK.format(tag=tag, name=c.name)}"
+                              if lead_id else None)
             steps.append(Step(
                 id=sid, agent=agent, mode="write", workdir=workdir, component=c.name,
-                depends_on=list(deps_ids), condition=condition, output=_var(tag, c.name),
+                depends_on=list(deps_ids), condition=spec_condition, output=_var(tag, c.name),
                 task=(
                     f"TASK:\n{task}\n\nYou handle the {tag} part of this task in the component "
                     f"\"{c.name}\" (`{workdir}/`), before {name_of(owner[c.name])} builds on it. "
@@ -276,7 +290,8 @@ def plan(task: str, project: Project, rules: Rules, roster: Roster, options: Pla
             ))
             concern_ids.append(sid)
             context_lines.append(f"What the {tag} specialist already did in this component:\n{{{{{_var(tag, c.name)}}}}}")
-            notes.append(f"concern: {c.name} gets {agent} first ('{kw}' in the task, tag {tag})")
+            notes.append(f"concern: {c.name} may get {agent} first ('{kw}' in the task, tag {tag}"
+                         + ("; the brief decides)" if lead_id else ")"))
 
         tools = check_tools([c])
         llm = {"allowed_tools": tools} if tools else {}

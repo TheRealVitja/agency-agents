@@ -4,7 +4,8 @@
 Reads the prompt on stdin and acts like an agent would, without a model:
   write steps   create agency-fake/<step>.txt in the working directory
   read steps    change nothing (unless FAKE_READ_WRITES is set)
-  brief         answers with an AFFECTED line for each name in FAKE_AFFECTED
+  brief         answers with an AFFECTED line for each name in FAKE_AFFECTED and a
+                SPECIALIST line for each tag:name in FAKE_SPECIALISTS
 Knobs: FAKE_FAIL=<step> fails that step after a partial edit; FAKE_LOG=<file>
 gets one line per call, so tests can count who ran.
 """
@@ -39,6 +40,9 @@ if step == "brief":
     lines.append("BRIEF-FROM-ARCHITECT")
     for name in filter(None, os.environ.get("FAKE_AFFECTED", "").split(",")):
         lines.append(f"AFFECTED: component:{name};")
+    for pair in filter(None, os.environ.get("FAKE_SPECIALISTS", "").split(",")):
+        tag, name = pair.split(":")
+        lines.append(f"SPECIALIST: {tag} for component:{name};")
 if step == "test":
     lines.append("RESULT: PASS")
 print("\n".join(lines))

@@ -158,8 +158,10 @@ steps:
   (`deps`, fnmatch, any ecosystem), files (`files`) and languages. The first
   matching **platform** tag picks the implementer; **language** tags are the
   fallback; **concern** tags (database, auth, payments, realtime, i18n,
-  search, container, CI, e2e tests) send their agent in first when the task
-  hits one of their `keywords`.
+  search, container, CI, e2e tests, netcode, game audio, …) put their
+  specialist on a component before its owner when the task hits one of their
+  `keywords` — and, when there is a brief, only where the architect marks it
+  (`SPECIALIST: <tag> for component:<name>;`).
 - `names` (component name patterns) and `requires_deps` are conditions, not
   evidence: `{"names": ["*network*"], "requires_deps": ["unity-asmdef"]}`
   matches a Unity assembly called `*.Networking`, never a Go package.

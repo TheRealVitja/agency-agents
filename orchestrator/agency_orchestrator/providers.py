@@ -97,7 +97,7 @@ class DryRunProvider(Provider):
 
     def run(self, req: Request) -> Result:
         self._write_files(req)
-        marks = re.findall(r"^AFFECTED: component:[^\n;]+;$", req.prompt, re.M)
+        marks = re.findall(r"^(?:AFFECTED: component:|SPECIALIST: )[^\n;]+;$", req.prompt, re.M)
         out = [f"[dry-run] {req.agent_name} ({req.agent}) would {req.mode} in {req.cwd}.",
                f"Prompt: {len(req.prompt)} characters, persona: {len(req.system_prompt)} characters."]
         if marks:

@@ -218,6 +218,10 @@ class UnityTest(unittest.TestCase):
         for junk in ("Library/ScriptAssemblies/Leak.asmdef", "Builds/Linux/Game_Data/Leak.cs", "Game.Core.csproj"):
             (self.root / junk).parent.mkdir(parents=True, exist_ok=True)
             (self.root / junk).write_text("{}")
+        git(self.root, "add", "-A")
+        # Untracked work in progress is not in a run's worktree, so not planned for.
+        (self.root / "Assets" / "Vendor").mkdir()
+        (self.root / "Assets" / "Vendor" / "Vendor.asmdef").write_text('{"name": "Vendor"}')
         self.p = proj.analyze(self.root, rules=RULES)
         self.by = {c.name: c for c in self.p.components}
 
@@ -226,6 +230,7 @@ class UnityTest(unittest.TestCase):
                                         "Game.Animals.Editor", "Game.Tests.EditMode"})
         self.assertIn("com.unity.netcode.gameobjects", self.by["game"].dependencies)
         self.assertFalse(any("Library" in f or "Builds" in f for c in self.p.components for f in c.files))
+        self.assertTrue(any("1 untracked file(s) left out" in n for n in self.p.notes), self.p.notes)
 
     def test_references_by_name_and_guid(self):
         edges = {(e.source, e.target) for e in self.p.edges}
@@ -241,6 +246,11 @@ class UnityTest(unittest.TestCase):
                          "referencing Netcode does not make a gameplay system a networking job")
         self.assertEqual(owner("Game.Animals.Editor"), "unity-editor-tool-developer")
         self.assertEqual(owner("Game.Tests.EditMode"), "unity-architect")
+
+    def test_owner_is_never_its_own_specialist(self):
+        w = planner.plan("Sync session state for co-op clients", self.p, RULES, ROSTER,
+                         planner.PlanOptions(components=["Game.Networking"]))[0]
+        self.assertNotIn("unity-netcode-game-networking", [s.id for s in w.steps])
 
     def test_netcode_specialist_only_for_sync_work(self):
         sync = planner.plan("Sync the wolf pack's hunting state to clients in co-op", self.p, RULES, ROSTER,
@@ -269,6 +279,10 @@ class PlannerTest(unittest.TestCase):
         self.assertIn("impl-ui", anc("impl-shop-web"))
         self.assertIn("impl-shop-api", anc("impl-shop-web"))
         self.assertTrue(all(w.step(f"impl-{c}").condition for c in ("shop-core", "shop-api", "ui", "shop-web", "infra")))
+        # the specialist runs only if the architect asks for it
+        self.assertEqual(w.step("database-shop-api").condition,
+                         "{{brief}} contains SPECIALIST: database for component:shop-api;")
+        self.assertIn("SPECIALIST: database for component:shop-api;", w.step("brief").task)
         self.assertEqual(w.step("impl-shop-api").agent, "backend-architect")
         self.assertEqual(w.step("database-shop-api").agent, "database-optimizer")
         self.assertEqual(w.step("test").agent, "api-tester")
@@ -322,6 +336,7 @@ class RunnerTest(unittest.TestCase):
         self.addCleanup(lambda: (os.environ.clear(), os.environ.update(self.env)))
         os.environ["FAKE_LOG"] = str(self.log)
         os.environ["FAKE_AFFECTED"] = "shop-api,shop-web"
+        os.environ["FAKE_SPECIALISTS"] = "database:shop-api"
         self.out = io.StringIO()
 
     def runner(self, w, **kw):

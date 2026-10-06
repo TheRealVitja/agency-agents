@@ -316,27 +316,42 @@ def _skipped(rel: str) -> bool:
     return any(p in SKIP_DIRS or (p.startswith(".") and p not in (".github", ".circleci")) for p in parts)
 
 
-def _git_files(root: Path) -> list[str] | None:
-    """Tracked and untracked-but-not-ignored files, so build output, Unity's
-    Library/ and generated .csproj files stay out the way .gitignore says."""
+def _git_ls(root: Path, *args: str) -> list[str] | None:
     try:
-        proc = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
-                              cwd=root, capture_output=True, timeout=60)
+        proc = subprocess.run(["git", "ls-files", "-z", *args], cwd=root, capture_output=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired):
         return None
     if proc.returncode != 0:
         return None
-    files = sorted({f for f in proc.stdout.decode("utf-8", "replace").split("\0") if f and not _skipped(f)})
-    return [f for f in files if (root / f).is_file()][:MAX_FILES]
+    return [f for f in proc.stdout.decode("utf-8", "replace").split("\0") if f]
 
 
-def _walk(root: Path) -> list[str]:
+def _git_files(root: Path) -> tuple[list[str], int] | None:
+    """Files git knows (committed or staged) and the number of untracked ones.
+
+    A run starts from a commit, so its worktree holds exactly the tracked
+    files: planning work on files only this checkout has would send agents
+    after code they cannot see. Ignored paths (Library/, Builds/, generated
+    .csproj) never show up either way."""
+    tracked = _git_ls(root, "--cached")
+    if tracked is None:
+        return None
+    untracked = _git_ls(root, "--others", "--exclude-standard") or []
+    files = sorted({f for f in tracked if not _skipped(f)})
+    return [f for f in files if (root / f).is_file()][:MAX_FILES], len(untracked)
+
+
+def _walk(root: Path, notes: list[str] | None = None) -> list[str]:
     """Relative paths of the project's files, minus build output and vendored code."""
     if (root / ".git").exists() or subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=root,
                                                    capture_output=True, text=True).stdout.strip() == "true":
         listed = _git_files(root)
         if listed is not None:
-            return listed
+            files, untracked = listed
+            if untracked and notes is not None:
+                notes.append(f"{untracked} untracked file(s) left out — runs start from the last commit; "
+                             "commit or stage them to include them")
+            return files
     files: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")
@@ -570,8 +585,8 @@ def analyze(root: Path | str, graphify: Path | str | None = None, rules=None) ->
     if not root.is_dir():
         raise FileNotFoundError(f"{root} is not a directory")
     override = _load_override(root)
-    files = _walk(root)
     notes: list[str] = []
+    files = _walk(root, notes)
     if len(files) >= MAX_FILES:
         notes.append(f"stopped listing files at {MAX_FILES}; large trees are only partly analyzed")
     ignore = [str(p).rstrip("/") for p in override.get("ignore") or []]
